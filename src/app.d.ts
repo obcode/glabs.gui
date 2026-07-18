@@ -6,6 +6,7 @@ declare global {
 			// hooks.server.js aus X-Remote-User gesetzt. Bei glabs ist der
 			// remoteUser zugleich die E-Mail-Adresse (OIDC gegen sso.hm.edu).
 			remoteUser?: string;
+			remoteDisplayname?: string;
 		}
 		// interface PageData {}
 		// interface PageState {}

@@ -24,5 +24,5 @@
 <Nav />
 <div class="px-3 pb-8 sm:px-4 lg:px-8">
 	{@render children?.()}
-	<Footer guiVersion={data?.guiVersion} buildTime={data?.buildTime} />
+	<Footer guiVersion={data?.guiVersion} buildTime={data?.buildTime} serverInfo={data?.serverInfo} />
 </div>
