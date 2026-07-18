@@ -1,0 +1,38 @@
+name: ci
+on:
+  push:
+    branches:
+      - '**'
+
+permissions:
+  contents: read # for checkout
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # to be able to publish a GitHub release
+      issues: write # to be able to comment on released issues
+      pull-requests: write # to be able to comment on released pull requests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Release
+        env:
+          # PAT nötig, damit das durch den Release ausgelöste `release`-Event die
+          # docker.yml-Pipeline triggert (ein mit GITHUB_TOKEN erzeugter Release
+          # löst keine weiteren Workflows aus).
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: pnpm dlx semantic-release --branches main

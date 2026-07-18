@@ -1,0 +1,36 @@
+name: quality
+
+# Qualitäts-Gate: läuft auf jedem Push und PR. Ergänzt ci.yml (nur Release).
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: check · test · build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: check (svelte-check, blockierend)
+        run: pnpm run check
+
+      - name: lint
+        run: pnpm run lint
+
+      - name: unit tests
+        run: pnpm test
+
+      - name: build
+        run: pnpm run build
