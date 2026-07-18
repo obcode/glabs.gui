@@ -8,6 +8,7 @@
 
 	let a = $derived(data.assignment);
 	let schema = $derived(data.schema ?? []);
+	let branchSchema = $derived(data.branchSchema ?? []);
 	// „Neu"-Modus: das Assignment existiert noch nicht, Speichern legt es an.
 	let isNew = $derived(data.isNew ?? false);
 
@@ -43,12 +44,52 @@
 		return f;
 	}
 
+	/**
+	 * Branch-Zeilen aus den eigenen (Source-)Werten aufbauen (indizierte Keys).
+	 * @param {any[]} bsch @param {{key: string, value: string}[]} own
+	 */
+	function buildBranches(bsch, own) {
+		const map = Object.fromEntries((own ?? []).map((o) => [o.key, o.value]));
+		const count = parseInt(map['branches.count'] ?? '0', 10) || 0;
+		/** @type {Record<string, any>[]} */
+		const rows = [];
+		for (let i = 0; i < count; i++) {
+			/** @type {Record<string, any>} */
+			const row = {};
+			for (const f of bsch ?? []) {
+				const v = map[`branches.${i}.${f.key}`] ?? '';
+				row[f.key] = f.kind === 'BOOL' ? v === 'true' : v;
+			}
+			rows.push(row);
+		}
+		return rows;
+	}
+
+	/** @param {any[]} bsch */
+	function emptyBranch(bsch) {
+		/** @type {Record<string, any>} */
+		const row = {};
+		for (const f of bsch ?? []) row[f.key] = f.kind === 'BOOL' ? false : '';
+		return row;
+	}
+
 	/** Formular-Entwurf → GraphQL-Draft (alle Werte als String; Booleans true/false). */
 	function toDraft() {
-		return schema.map((/** @type {any} */ field) => ({
+		const draft = schema.map((/** @type {any} */ field) => ({
 			key: field.key,
 			value: field.kind === 'BOOL' ? String(!!form[field.key]) : String(form[field.key] ?? '')
 		}));
+		// branches als indizierte Keys + count-Sentinel
+		draft.push({ key: 'branches.count', value: String(branchRows.length) });
+		branchRows.forEach((row, i) => {
+			for (const f of branchSchema) {
+				draft.push({
+					key: `branches.${i}.${f.key}`,
+					value: f.kind === 'BOOL' ? String(!!row[f.key]) : String(row[f.key] ?? '')
+				});
+			}
+		});
+		return draft;
 	}
 
 	// Bearbeitbarer Zustand + Vergleichsbasis für „geändert?". untrack: Initialwert
@@ -57,6 +98,12 @@
 	let form = $state(untrack(() => build(data.schema, data.assignment.own)));
 	/** @type {Record<string, any>} */
 	let original = $state(untrack(() => build(data.schema, data.assignment.own)));
+	/** @type {Record<string, any>[]} */
+	let branchRows = $state(untrack(() => buildBranches(data.branchSchema, data.assignment.own)));
+	/** @type {Record<string, any>[]} */
+	let originalBranches = $state(
+		untrack(() => buildBranches(data.branchSchema, data.assignment.own))
+	);
 
 	// Neu aufbauen bei Wechsel auf ein anderes Assignment (gleiche Route → Komponente
 	// wiederverwendet) und nach dem Speichern (own ändert sich via invalidateAll).
@@ -68,13 +115,28 @@
 			void ownKey;
 			form = build(data.schema, data.assignment.own);
 			original = build(data.schema, data.assignment.own);
+			branchRows = buildBranches(data.branchSchema, data.assignment.own);
+			originalBranches = buildBranches(data.branchSchema, data.assignment.own);
 			serverResult = null;
 			saveError = '';
 			saveOk = false;
 		});
 	});
 
-	let dirty = $derived(JSON.stringify(form) !== JSON.stringify(original));
+	let dirty = $derived(
+		JSON.stringify(form) !== JSON.stringify(original) ||
+			JSON.stringify(branchRows) !== JSON.stringify(originalBranches)
+	);
+
+	function addBranch() {
+		branchRows = [...branchRows, emptyBranch(branchSchema)];
+		scheduleValidate();
+	}
+	/** @param {number} i */
+	function removeBranch(i) {
+		branchRows = branchRows.filter((_, idx) => idx !== i);
+		scheduleValidate();
+	}
 
 	// Server-Validierung (debounced) für Live-Vorschau + Fehler.
 	/** @typedef {{ok:boolean, errors:string[], resolved?:string|null, resolveError?:string|null}} ValidationResult */
@@ -314,6 +376,54 @@
 						{/each}
 					</div>
 				{/each}
+
+				<!-- Branches (Repeat-Group / Liste von Regeln) -->
+				<div class="flex flex-col gap-3">
+					<div class="flex items-center justify-between border-b border-base-200 pb-1">
+						<span class="text-xs font-semibold tracking-wide text-base-content/50 uppercase">
+							Branches ({branchRows.length})
+						</span>
+						<button type="button" class="btn btn-ghost btn-xs" onclick={addBranch}>+ Branch</button>
+					</div>
+					{#if branchRows.length === 0}
+						<p class="text-xs text-base-content/50">
+							Keine eigenen Branch-Regeln (werden ggf. von der Basis geerbt).
+						</p>
+					{/if}
+					{#each branchRows as row, i (i)}
+						<div class="rounded-lg border border-base-200 p-2">
+							<div class="flex items-center justify-between">
+								<span class="text-xs font-medium text-base-content/60">Branch #{i + 1}</span>
+								<button type="button" class="text-xs text-error" onclick={() => removeBranch(i)}>
+									entfernen
+								</button>
+							</div>
+							<div class="mt-2 flex flex-col gap-2">
+								{#each branchSchema as f (f.key)}
+									{#if f.kind === 'BOOL'}
+										<label class="flex cursor-pointer items-center gap-2 text-sm">
+											<input type="checkbox" class="toggle toggle-sm" bind:checked={row[f.key]} />
+											<span>{f.label}</span>
+											<span class="text-xs text-base-content/50">— {f.description}</span>
+										</label>
+									{:else}
+										<label class="flex flex-col gap-1">
+											<span class="text-sm font-medium">
+												{f.label}{#if f.required}<span class="text-error"> *</span>{/if}
+											</span>
+											<input
+												type="text"
+												class="input input-bordered input-sm"
+												placeholder={f.example ? `z. B. ${f.example}` : ''}
+												bind:value={row[f.key]}
+											/>
+										</label>
+									{/if}
+								{/each}
+							</div>
+						</div>
+					{/each}
+				</div>
 			</div>
 
 			{#if serverErrors.length > 0}
