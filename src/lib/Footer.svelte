@@ -3,15 +3,14 @@
 
 	/**
 	 * @typedef {Object} ServerInfo
-	 * @property {string} [version]      glabs-web-Version (bringt das führende „v" bereits mit)
-	 * @property {string} [commit]       Git-Commit des Backends
-	 * @property {string|null} [releaseURL] Link zum GitHub-Release (null bei dev-Build)
-	 * @property {string} [date]         Release-/Build-Zeitpunkt (RFC3339 UTC); „unknown" bei dev-Build
+	 * @property {string} [version]  glabs-web-Version: „vX.Y.Z" (Release) oder „dev-<rev>…" (dev-Build)
+	 * @property {string} [commit]   Git-Commit des Backends
+	 * @property {string} [date]     Release-/Build-Zeitpunkt (RFC3339 UTC); „unknown" bei dev-Build
 	 *
 	 * @typedef {Object} Props
 	 * @property {string} [guiVersion]           eigene GUI-Version (Buildzeit, aus semantic-release-Tag)
 	 * @property {string} [buildTime]            Build-Zeitpunkt (ISO-8601), aus Vite-`define`
-	 * @property {ServerInfo|null} [serverInfo]  Server-Infos vom Backend (später, Meilenstein F)
+	 * @property {ServerInfo|null} [serverInfo]  Server-Infos von glabs-web
 	 */
 
 	/** @type {Props} */
@@ -49,7 +48,15 @@
 			: 'https://github.com/obcode/glabs.gui/releases'
 	);
 
-	const serverDisplay = $derived(display(serverInfo?.version));
+	// glabs-web meldet entweder einen echten Release-Tag oder „dev-<rev>…".
+	const serverIsDev = $derived(!!serverInfo?.version?.startsWith('dev'));
+	// dev-Version roh anzeigen (kein erzwungenes „v"); echten Tag normalisieren.
+	const serverDisplay = $derived(serverIsDev ? serverInfo?.version : display(serverInfo?.version));
+	// Bei echtem Release aufs glabs-Release verlinken (serverInfo trägt keine URL).
+	const serverReleaseTag = $derived(serverIsDev ? null : baseReleaseTag(serverInfo?.version));
+	const serverReleaseURL = $derived(
+		serverReleaseTag ? `https://github.com/obcode/glabs/releases/tag/${serverReleaseTag}` : null
+	);
 	// Release-/Build-Zeitpunkt des Backends; „unknown" = dev-Build → nichts anzeigen.
 	const serverDateDisplay = $derived(
 		serverInfo?.date && serverInfo.date !== 'unknown' ? formatBuildTime(serverInfo.date) : null
@@ -80,12 +87,12 @@
 		<!-- glabs-web-Version: als Link, wenn ein Release existiert, sonst dev-Build -->
 		<span>
 			glabs-web
-			{#if serverInfo?.releaseURL}
-				<a class="link link-hover" href={serverInfo.releaseURL} target="_blank" rel="noopener">
+			{#if serverReleaseURL}
+				<a class="link link-hover" href={serverReleaseURL} target="_blank" rel="noopener">
 					{serverDisplay}
 				</a>
 			{:else}
-				<span title={serverInfo?.commit ?? undefined}>{serverDisplay} (dev)</span>
+				<span title={serverInfo?.commit ?? undefined}>{serverDisplay}</span>
 			{/if}
 			{#if serverDateDisplay}
 				<span class="opacity-70">— {serverDateDisplay}</span>

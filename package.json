@@ -47,7 +47,9 @@
 		"vitest": "^4.1.9"
 	},
 	"dependencies": {
-		"dotenv": "^16.6.0"
+		"dotenv": "^16.6.0",
+		"graphql": "^16.14.2",
+		"graphql-request": "^7.4.0"
 	},
 	"lint-staged": {
 		"*.{js,ts,svelte}": [

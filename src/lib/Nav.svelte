@@ -1,8 +1,15 @@
 <script>
 	import { onMount } from 'svelte';
+	import { page } from '$app/state';
+	import { displayName } from '$lib/auth';
 
 	// Kuratierte Themes (müssen zu app.css `@plugin "daisyui"` passen).
 	const themes = ['nord', 'light', 'dark', 'corporate', 'business'];
+
+	// Angemeldete Identität (SSR aus dem Layout-Load; kein Flackern).
+	// null = kein Auth-Backend / lokal-Dev → kein Nutzer-Chip.
+	let me = $derived(page.data?.me ?? null);
+	let meName = $derived(displayName(me));
 
 	// aktuell aktives Theme (von theme-change als data-theme am <html> gesetzt),
 	// damit der Umschalter es anzeigen und im Dropdown markieren kann.
@@ -87,5 +94,21 @@
 				{/each}
 			</ul>
 		</div>
+
+		<!-- Angemeldete Identität (nur wenn ein Auth-Backend eine Kennung liefert) -->
+		{#if me}
+			<div
+				class="inline-flex items-center gap-1.5 rounded-full border border-base-300 px-2 py-1 text-sm font-medium text-base-content/80"
+				title="Angemeldet als {meName}"
+				aria-label="Angemeldet als {meName}"
+			>
+				<span
+					class="flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary uppercase"
+				>
+					{(meName || '?').charAt(0)}
+				</span>
+				<span class="hidden max-w-40 truncate sm:inline">{meName}</span>
+			</div>
+		{/if}
 	</div>
 </header>
