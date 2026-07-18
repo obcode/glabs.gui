@@ -26,7 +26,10 @@ export function subscribe<TData>(
 ): () => void {
 	let client: ReturnType<typeof createClient>;
 	try {
-		client = createClient({ url: wsURL() });
+		// keepAlive: the client pings every 12s so a long stream (report/check) is
+		// not dropped as idle and re-subscribed from scratch. Belt-and-suspenders
+		// with the server's PongOnlyInterval.
+		client = createClient({ url: wsURL(), keepAlive: 12_000 });
 	} catch (e) {
 		handlers.error(e instanceof Error ? e.message : String(e));
 		return () => {};
