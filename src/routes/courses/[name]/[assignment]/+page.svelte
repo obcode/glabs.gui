@@ -358,6 +358,13 @@
 		{#if !isNew}
 			<a
 				class="btn btn-outline btn-xs"
+				href={`/courses/${encodeURIComponent(a.course)}/${encodeURIComponent(a.name)}/ops`}
+				title="Mutierende GitLab-Ops (setaccess/protect/archive/delete) mit Plan/Bestätigen"
+			>
+				⚙️ Operationen
+			</a>
+			<a
+				class="btn btn-outline btn-xs"
 				href={`/courses/${encodeURIComponent(a.course)}/${encodeURIComponent(a.name)}/report`}
 				title="Live-Report der Repositories (GitLab-Token nötig)"
 			>
