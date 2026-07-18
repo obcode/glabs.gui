@@ -39,6 +39,27 @@ export const load = async ({ params }) => {
 						required
 						example
 					}
+					approvalSettingsSchema {
+						key
+						label
+						description
+						kind
+						required
+						example
+						options {
+							value
+							label
+							description
+						}
+					}
+					approvalRuleSchema {
+						key
+						label
+						description
+						kind
+						required
+						example
+					}
 					assignment(course: $course, name: $name) {
 						course
 						name
@@ -61,6 +82,8 @@ export const load = async ({ params }) => {
 			return {
 				schema: d?.assignmentSchema ?? [],
 				branchSchema: d?.branchRuleSchema ?? [],
+				settingsSchema: d?.approvalSettingsSchema ?? [],
+				ruleSchema: d?.approvalRuleSchema ?? [],
 				assignment: {
 					course,
 					name: assignment,
@@ -76,6 +99,8 @@ export const load = async ({ params }) => {
 		return {
 			schema: d.assignmentSchema ?? [],
 			branchSchema: d.branchRuleSchema ?? [],
+			settingsSchema: d.approvalSettingsSchema ?? [],
+			ruleSchema: d.approvalRuleSchema ?? [],
 			assignment: d.assignment,
 			isNew: false
 		};

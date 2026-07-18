@@ -9,6 +9,8 @@
 	let a = $derived(data.assignment);
 	let schema = $derived(data.schema ?? []);
 	let branchSchema = $derived(data.branchSchema ?? []);
+	let settingsSchema = $derived(data.settingsSchema ?? []);
+	let ruleSchema = $derived(data.ruleSchema ?? []);
 	// „Neu"-Modus: das Assignment existiert noch nicht, Speichern legt es an.
 	let isNew = $derived(data.isNew ?? false);
 
@@ -30,10 +32,11 @@
 	});
 
 	/**
-	 * @param {any[]} sch
-	 * @param {{key: string, value: string}[]} own
+	 * Flaches Formular: Skalarfelder (aus `sch`) plus die Approval-Settings, die
+	 * unter approvals.settings.<key> abgelegt sind (alle ENUM → String).
+	 * @param {any[]} sch @param {any[]} ssch @param {{key: string, value: string}[]} own
 	 */
-	function build(sch, own) {
+	function build(sch, ssch, own) {
 		const ownMap = Object.fromEntries((own ?? []).map((o) => [o.key, o.value]));
 		/** @type {Record<string, any>} */
 		const f = {};
@@ -41,23 +44,26 @@
 			const v = ownMap[field.key] ?? '';
 			f[field.key] = field.kind === 'BOOL' ? v === 'true' : v;
 		}
+		for (const field of ssch ?? []) {
+			f['approvals.settings.' + field.key] = ownMap['approvals.settings.' + field.key] ?? '';
+		}
 		return f;
 	}
 
 	/**
-	 * Branch-Zeilen aus den eigenen (Source-)Werten aufbauen (indizierte Keys).
-	 * @param {any[]} bsch @param {{key: string, value: string}[]} own
+	 * Repeat-Group-Zeilen aus indizierten own-Keys (`<prefix>.<i>.<feld>`).
+	 * @param {any[]} rsch @param {{key: string, value: string}[]} own @param {string} prefix
 	 */
-	function buildBranches(bsch, own) {
+	function buildRows(rsch, own, prefix) {
 		const map = Object.fromEntries((own ?? []).map((o) => [o.key, o.value]));
-		const count = parseInt(map['branches.count'] ?? '0', 10) || 0;
+		const count = parseInt(map[`${prefix}.count`] ?? '0', 10) || 0;
 		/** @type {Record<string, any>[]} */
 		const rows = [];
 		for (let i = 0; i < count; i++) {
 			/** @type {Record<string, any>} */
 			const row = {};
-			for (const f of bsch ?? []) {
-				const v = map[`branches.${i}.${f.key}`] ?? '';
+			for (const f of rsch ?? []) {
+				const v = map[`${prefix}.${i}.${f.key}`] ?? '';
 				row[f.key] = f.kind === 'BOOL' ? v === 'true' : v;
 			}
 			rows.push(row);
@@ -65,12 +71,29 @@
 		return rows;
 	}
 
-	/** @param {any[]} bsch */
-	function emptyBranch(bsch) {
+	/** @param {any[]} rsch */
+	function emptyRow(rsch) {
 		/** @type {Record<string, any>} */
 		const row = {};
-		for (const f of bsch ?? []) row[f.key] = f.kind === 'BOOL' ? false : '';
+		for (const f of rsch ?? []) row[f.key] = f.kind === 'BOOL' ? false : '';
 		return row;
+	}
+
+	/**
+	 * Repeat-Group-Zeilen → Draft-Keys (count-Sentinel + indizierte Keys).
+	 * @param {Record<string, any>[]} rows @param {any[]} rsch @param {string} prefix
+	 */
+	function rowsToDraft(rows, rsch, prefix) {
+		const out = [{ key: `${prefix}.count`, value: String(rows.length) }];
+		rows.forEach((row, i) => {
+			for (const f of rsch) {
+				out.push({
+					key: `${prefix}.${i}.${f.key}`,
+					value: f.kind === 'BOOL' ? String(!!row[f.key]) : String(row[f.key] ?? '')
+				});
+			}
+		});
+		return out;
 	}
 
 	/** Formular-Entwurf → GraphQL-Draft (alle Werte als String; Booleans true/false). */
@@ -79,30 +102,39 @@
 			key: field.key,
 			value: field.kind === 'BOOL' ? String(!!form[field.key]) : String(form[field.key] ?? '')
 		}));
-		// branches als indizierte Keys + count-Sentinel
-		draft.push({ key: 'branches.count', value: String(branchRows.length) });
-		branchRows.forEach((row, i) => {
-			for (const f of branchSchema) {
-				draft.push({
-					key: `branches.${i}.${f.key}`,
-					value: f.kind === 'BOOL' ? String(!!row[f.key]) : String(row[f.key] ?? '')
-				});
-			}
-		});
+		// Approval-Settings (flach, in form unter approvals.settings.*)
+		for (const f of settingsSchema) {
+			const k = 'approvals.settings.' + f.key;
+			draft.push({ key: k, value: String(form[k] ?? '') });
+		}
+		draft.push(...rowsToDraft(branchRows, branchSchema, 'branches'));
+		draft.push(...rowsToDraft(approvalRows, ruleSchema, 'approvals.rules'));
 		return draft;
 	}
 
 	// Bearbeitbarer Zustand + Vergleichsbasis für „geändert?". untrack: Initialwert
 	// bewusst einmal; das Zurücksetzen übernimmt der $effect unten.
 	/** @type {Record<string, any>} */
-	let form = $state(untrack(() => build(data.schema, data.assignment.own)));
+	let form = $state(untrack(() => build(data.schema, data.settingsSchema, data.assignment.own)));
 	/** @type {Record<string, any>} */
-	let original = $state(untrack(() => build(data.schema, data.assignment.own)));
+	let original = $state(
+		untrack(() => build(data.schema, data.settingsSchema, data.assignment.own))
+	);
 	/** @type {Record<string, any>[]} */
-	let branchRows = $state(untrack(() => buildBranches(data.branchSchema, data.assignment.own)));
+	let branchRows = $state(
+		untrack(() => buildRows(data.branchSchema, data.assignment.own, 'branches'))
+	);
 	/** @type {Record<string, any>[]} */
 	let originalBranches = $state(
-		untrack(() => buildBranches(data.branchSchema, data.assignment.own))
+		untrack(() => buildRows(data.branchSchema, data.assignment.own, 'branches'))
+	);
+	/** @type {Record<string, any>[]} */
+	let approvalRows = $state(
+		untrack(() => buildRows(data.ruleSchema, data.assignment.own, 'approvals.rules'))
+	);
+	/** @type {Record<string, any>[]} */
+	let originalApprovals = $state(
+		untrack(() => buildRows(data.ruleSchema, data.assignment.own, 'approvals.rules'))
 	);
 
 	// Neu aufbauen bei Wechsel auf ein anderes Assignment (gleiche Route → Komponente
@@ -113,10 +145,12 @@
 		untrack(() => {
 			void id;
 			void ownKey;
-			form = build(data.schema, data.assignment.own);
-			original = build(data.schema, data.assignment.own);
-			branchRows = buildBranches(data.branchSchema, data.assignment.own);
-			originalBranches = buildBranches(data.branchSchema, data.assignment.own);
+			form = build(data.schema, data.settingsSchema, data.assignment.own);
+			original = build(data.schema, data.settingsSchema, data.assignment.own);
+			branchRows = buildRows(data.branchSchema, data.assignment.own, 'branches');
+			originalBranches = buildRows(data.branchSchema, data.assignment.own, 'branches');
+			approvalRows = buildRows(data.ruleSchema, data.assignment.own, 'approvals.rules');
+			originalApprovals = buildRows(data.ruleSchema, data.assignment.own, 'approvals.rules');
 			serverResult = null;
 			saveError = '';
 			saveOk = false;
@@ -125,16 +159,26 @@
 
 	let dirty = $derived(
 		JSON.stringify(form) !== JSON.stringify(original) ||
-			JSON.stringify(branchRows) !== JSON.stringify(originalBranches)
+			JSON.stringify(branchRows) !== JSON.stringify(originalBranches) ||
+			JSON.stringify(approvalRows) !== JSON.stringify(originalApprovals)
 	);
 
 	function addBranch() {
-		branchRows = [...branchRows, emptyBranch(branchSchema)];
+		branchRows = [...branchRows, emptyRow(branchSchema)];
 		scheduleValidate();
 	}
 	/** @param {number} i */
 	function removeBranch(i) {
 		branchRows = branchRows.filter((_, idx) => idx !== i);
+		scheduleValidate();
+	}
+	function addApprovalRule() {
+		approvalRows = [...approvalRows, emptyRow(ruleSchema)];
+		scheduleValidate();
+	}
+	/** @param {number} i */
+	function removeApprovalRule(i) {
+		approvalRows = approvalRows.filter((_, idx) => idx !== i);
 		scheduleValidate();
 	}
 
@@ -400,6 +444,77 @@
 							</div>
 							<div class="mt-2 flex flex-col gap-2">
 								{#each branchSchema as f (f.key)}
+									{#if f.kind === 'BOOL'}
+										<label class="flex cursor-pointer items-center gap-2 text-sm">
+											<input type="checkbox" class="toggle toggle-sm" bind:checked={row[f.key]} />
+											<span>{f.label}</span>
+											<span class="text-xs text-base-content/50">— {f.description}</span>
+										</label>
+									{:else}
+										<label class="flex flex-col gap-1">
+											<span class="text-sm font-medium">
+												{f.label}{#if f.required}<span class="text-error"> *</span>{/if}
+											</span>
+											<input
+												type="text"
+												class="input input-bordered input-sm"
+												placeholder={f.example ? `z. B. ${f.example}` : ''}
+												bind:value={row[f.key]}
+											/>
+										</label>
+									{/if}
+								{/each}
+							</div>
+						</div>
+					{/each}
+				</div>
+
+				<!-- Approvals: Settings (Tri-State) + Rules-Repeat-Group (Teil des Merge-Request) -->
+				<div class="flex flex-col gap-3">
+					<div
+						class="border-b border-base-200 pb-1 text-xs font-semibold tracking-wide text-base-content/50 uppercase"
+					>
+						Approvals
+					</div>
+					{#each settingsSchema as f (f.key)}
+						<div class="flex flex-col gap-1">
+							<label class="text-sm font-medium" for="s-{f.key}">{f.label}</label>
+							<p class="text-xs text-base-content/60">{f.description}</p>
+							<select
+								id="s-{f.key}"
+								class="select select-bordered select-sm"
+								bind:value={form['approvals.settings.' + f.key]}
+							>
+								<option value="">— nicht gesetzt —</option>
+								{#each f.options as opt (opt.value)}
+									<option value={opt.value}>{opt.label}</option>
+								{/each}
+							</select>
+						</div>
+					{/each}
+
+					<div class="flex items-center justify-between">
+						<span class="text-xs font-medium text-base-content/60">
+							Regeln ({approvalRows.length})
+						</span>
+						<button type="button" class="btn btn-ghost btn-xs" onclick={addApprovalRule}>
+							+ Regel
+						</button>
+					</div>
+					{#each approvalRows as row, i (i)}
+						<div class="rounded-lg border border-base-200 p-2">
+							<div class="flex items-center justify-between">
+								<span class="text-xs font-medium text-base-content/60">Regel #{i + 1}</span>
+								<button
+									type="button"
+									class="text-xs text-error"
+									onclick={() => removeApprovalRule(i)}
+								>
+									entfernen
+								</button>
+							</div>
+							<div class="mt-2 flex flex-col gap-2">
+								{#each ruleSchema as f (f.key)}
 									{#if f.kind === 'BOOL'}
 										<label class="flex cursor-pointer items-center gap-2 text-sm">
 											<input type="checkbox" class="toggle toggle-sm" bind:checked={row[f.key]} />
