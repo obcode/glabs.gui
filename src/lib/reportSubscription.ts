@@ -1,7 +1,5 @@
-import { createClient } from 'graphql-ws';
-import { print } from 'graphql';
-import { env } from '$env/dynamic/public';
 import { graphql } from '$lib/gql';
+import { subscribe } from '$lib/wsClient';
 import type { AssignmentReportProgressSubscription } from '$lib/gql/graphql';
 
 // One progress event of the report stream (the subscription payload).
@@ -61,50 +59,23 @@ const DOC = graphql(`
 	}
 `);
 
-// Browser → glabs-web GraphQL over WebSocket. Unlike the SSR calls (internal hop),
-// the report stream runs in the browser against PUBLIC_GLABS_SERVER; in production
-// the auth proxy injects the identity on the WS upgrade (as on any request), in
-// dev the backend runs with auth disabled.
-function wsURL(): string {
-	const http = env.PUBLIC_GLABS_SERVER;
-	if (!http) {
-		throw new Error('PUBLIC_GLABS_SERVER ist nicht gesetzt — der Report-Stream kann nicht öffnen.');
-	}
-	return http.replace(/^http/, 'ws');
-}
-
 /**
  * Subscribe to the live report stream for one assignment. Calls `next` for every
- * progress event and `error` on a transport/connection failure. Returns a cleanup
- * function that unsubscribes and disposes the client.
+ * progress event and `error` on a transport failure. Returns a cleanup function.
  */
 export function subscribeAssignmentReport(
 	course: string,
 	name: string,
 	handlers: { next: (p: ReportProgress) => void; error: (message: string) => void }
 ): () => void {
-	let client: ReturnType<typeof createClient>;
-	try {
-		client = createClient({ url: wsURL() });
-	} catch (e) {
-		handlers.error(e instanceof Error ? e.message : String(e));
-		return () => {};
-	}
-
-	const unsub = client.subscribe(
-		{ query: print(DOC), variables: { course, name } },
+	return subscribe<AssignmentReportProgressSubscription>(
+		DOC,
+		{ course, name },
 		{
-			next: (result) => {
-				const data = result.data as AssignmentReportProgressSubscription | undefined;
-				if (data?.assignmentReportProgress) handlers.next(data.assignmentReportProgress);
+			next: (d) => {
+				if (d.assignmentReportProgress) handlers.next(d.assignmentReportProgress);
 			},
-			error: (err) => handlers.error(err instanceof Error ? err.message : String(err)),
-			complete: () => {}
+			error: handlers.error
 		}
 	);
-
-	return () => {
-		unsub();
-		void client.dispose();
-	};
 }

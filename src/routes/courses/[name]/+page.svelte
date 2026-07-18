@@ -158,6 +158,13 @@
 			<a class="btn btn-primary btn-sm" href="/download/course/{encodeURIComponent(course.name)}">
 				⬇️ YAML herunterladen
 			</a>
+			<a
+				class="btn btn-outline btn-sm"
+				href="/courses/{encodeURIComponent(course.name)}/check"
+				title="Roster gegen GitLab prüfen (GitLab-Token nötig)"
+			>
+				🔍 Prüfen
+			</a>
 			<button class="btn btn-outline btn-sm" onclick={openEdit}>✏️ Bearbeiten</button>
 			<button class="btn btn-error btn-outline btn-sm" onclick={() => (confirmOpen = true)}>
 				🗑️ Löschen
