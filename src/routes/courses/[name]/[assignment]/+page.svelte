@@ -1,6 +1,7 @@
 <script>
 	import Convert from 'ansi-to-html';
 	import { untrack } from 'svelte';
+	import { invalidateAll } from '$app/navigation';
 
 	/** @type {{ data: import('./$types').PageData }} */
 	let { data } = $props();
@@ -23,33 +24,110 @@
 		return f;
 	}
 
-	/**
-	 * Lokaler Formular-Zustand, vorbefüllt aus den eigenen (Source-)Werten. Der
-	 * Editor ist in diesem Schritt eine Vorschau: die Bedienelemente sind schon
-	 * interaktiv (Dropdowns, Validierung), aber Speichern + Server-Validierung
-	 * folgen im nächsten Schritt. `untrack`: der Initialwert wird bewusst einmal
-	 * erfasst — das Zurücksetzen bei Navigation übernimmt der $effect unten.
-	 * @type {Record<string, any>}
-	 */
-	let form = $state(untrack(() => build(data.schema, data.assignment.own)));
+	/** Formular-Entwurf → GraphQL-Draft (alle Werte als String; Booleans true/false). */
+	function toDraft() {
+		return schema.map((/** @type {any} */ field) => ({
+			key: field.key,
+			value: field.kind === 'BOOL' ? String(!!form[field.key]) : String(form[field.key] ?? '')
+		}));
+	}
 
-	// Gleiche Route für alle Assignments → SvelteKit verwendet die Komponente
-	// wieder, der $state-Initializer läuft nicht erneut. Beim Wechsel auf ein
-	// anderes Assignment den Formular-Zustand neu aufbauen.
+	// Bearbeitbarer Zustand + Vergleichsbasis für „geändert?". untrack: Initialwert
+	// bewusst einmal; das Zurücksetzen übernimmt der $effect unten.
+	/** @type {Record<string, any>} */
+	let form = $state(untrack(() => build(data.schema, data.assignment.own)));
+	/** @type {Record<string, any>} */
+	let original = $state(untrack(() => build(data.schema, data.assignment.own)));
+
+	// Neu aufbauen bei Wechsel auf ein anderes Assignment (gleiche Route → Komponente
+	// wiederverwendet) und nach dem Speichern (own ändert sich via invalidateAll).
 	$effect(() => {
 		const id = a.course + '/' + a.name;
+		const ownKey = JSON.stringify(a.own);
 		untrack(() => {
 			void id;
+			void ownKey;
 			form = build(data.schema, data.assignment.own);
+			original = build(data.schema, data.assignment.own);
+			serverResult = null;
+			saveError = '';
+			saveOk = false;
 		});
 	});
 
-	// Live-Client-Validierung: Pflichtfelder eines konkreten (nicht abstrakten)
-	// Assignments. Die verbindliche Prüfung macht später der Server-Resolver.
-	let errors = $derived.by(() => {
+	let dirty = $derived(JSON.stringify(form) !== JSON.stringify(original));
+
+	// Server-Validierung (debounced) für Live-Vorschau + Fehler.
+	/** @typedef {{ok:boolean, errors:string[], resolved?:string|null, resolveError?:string|null}} ValidationResult */
+	let serverResult = $state(/** @type {ValidationResult|null} */ (null));
+	let validating = $state(false);
+	let saving = $state(false);
+	let saveError = $state('');
+	let saveOk = $state(false);
+
+	/** @type {ReturnType<typeof setTimeout>|undefined} */
+	let debounce;
+	let validateSeq = 0;
+
+	function scheduleValidate() {
+		saveOk = false;
+		clearTimeout(debounce);
+		debounce = setTimeout(runValidate, 400);
+	}
+
+	async function runValidate() {
+		const seq = ++validateSeq;
+		validating = true;
+		try {
+			const res = await fetch('/api/assignment/validate', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ course: a.course, name: a.name, draft: toDraft() })
+			});
+			const d = await res.json().catch(() => ({}));
+			if (seq !== validateSeq) return; // eine neuere Prüfung hat gewonnen
+			if (!res.ok || d?.error) {
+				serverResult = { ok: false, errors: [d?.error || `Fehler (HTTP ${res.status})`] };
+			} else {
+				serverResult = d.validateAssignmentDraft ?? null;
+			}
+		} catch (e) {
+			if (seq === validateSeq)
+				serverResult = { ok: false, errors: [e instanceof Error ? e.message : String(e)] };
+		} finally {
+			if (seq === validateSeq) validating = false;
+		}
+	}
+
+	async function save() {
+		saving = true;
+		saveError = '';
+		saveOk = false;
+		try {
+			const res = await fetch('/api/assignment/set', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ course: a.course, name: a.name, draft: toDraft() })
+			});
+			const d = await res.json().catch(() => ({}));
+			if (!res.ok || d?.error) {
+				saveError = d?.error || `Fehler (HTTP ${res.status})`;
+				return;
+			}
+			await invalidateAll(); // lädt own + resolved neu → $effect setzt das Formular zurück
+			saveOk = true;
+		} catch (e) {
+			saveError = e instanceof Error ? e.message : String(e);
+		} finally {
+			saving = false;
+		}
+	}
+
+	// Client-seitige Pflichtprüfung (nur Vorab-Hinweis; verbindlich prüft der Server).
+	let clientErrors = $derived.by(() => {
 		/** @type {Record<string, string>} */
 		const e = {};
-		if (a.abstract) return e;
+		if (form.abstract === true) return e;
 		for (const field of schema) {
 			if (field.required && (form[field.key] === '' || form[field.key] == null)) {
 				e[field.key] = `„${field.label}" ist erforderlich.`;
@@ -58,12 +136,17 @@
 		return e;
 	});
 
-	// Aufgelöste Vorschau (Show()-Ausgabe mit ANSI) → HTML. Terminal-Farben auf
-	// dunklem Grund; escapeXML schützt vor HTML in Config-Werten.
+	// Vorschau + Fehler: aus dem letzten Server-Ergebnis, sonst aus dem geladenen Stand.
+	let preview = $derived(serverResult ? serverResult.resolved : a.resolved);
+	let previewError = $derived(serverResult ? serverResult.resolveError : a.resolveError);
+	let serverErrors = $derived(serverResult?.errors ?? []);
+	// Speichern erlauben, solange die letzte Prüfung nicht explizit fehlschlug.
+	let canSave = $derived(dirty && !saving && serverResult?.ok !== false);
+
 	let resolvedHtml = $derived.by(() => {
-		if (!a.resolved) return '';
+		if (!preview) return '';
 		const convert = new Convert({ fg: '#cdd6f4', bg: '#1e1e2e', escapeXML: true, newline: false });
-		return convert.toHtml(a.resolved);
+		return convert.toHtml(preview);
 	});
 
 	/** @param {any} field @param {string} val */
@@ -86,25 +169,17 @@
 		{#if a.extends}
 			<span class="badge badge-ghost gap-1" title="erbt von {a.extends}">erbt von {a.extends}</span>
 		{/if}
-		{#if a.abstract}
+		{#if form.abstract}
 			<span class="badge badge-warning" title="abstrakte Basis">abstrakt</span>
 		{/if}
-	</div>
-
-	<div class="mt-3 alert alert-info">
-		<span class="text-sm">
-			Vorschau des geführten Editors — die Felder sind bereits interaktiv (Dropdowns,
-			Beschreibungen, Pflichtprüfung). <span class="font-medium"
-				>Speichern und Server-Validierung folgen im nächsten Schritt.</span
-			>
-		</span>
 	</div>
 
 	<div class="mt-4 grid gap-6 lg:grid-cols-2">
 		<!-- Schema-getriebenes Formular -->
 		<section>
 			<h2 class="text-sm font-semibold text-base-content/70">Konfiguration</h2>
-			<div class="mt-3 flex flex-col gap-4">
+			<!-- oninput bubbelt von allen Feldern → eine Stelle löst die Server-Prüfung aus -->
+			<div class="mt-3 flex flex-col gap-4" oninput={scheduleValidate}>
 				{#each schema as field (field.key)}
 					<div class="flex flex-col gap-1">
 						<label class="flex items-center gap-2 text-sm font-medium" for="f-{field.key}">
@@ -152,33 +227,59 @@
 							/>
 						{/if}
 
-						{#if errors[field.key]}
-							<p class="text-xs text-error">{errors[field.key]}</p>
+						{#if clientErrors[field.key]}
+							<p class="text-xs text-error">{clientErrors[field.key]}</p>
 						{/if}
 					</div>
 				{/each}
 			</div>
 
+			{#if serverErrors.length > 0}
+				<div class="mt-4 alert alert-error">
+					<div class="text-sm">
+						<div class="font-medium">Nicht speicherbar:</div>
+						<ul class="mt-1 list-disc pl-5">
+							{#each serverErrors as err (err)}
+								<li class="font-mono break-words">{err}</li>
+							{/each}
+						</ul>
+					</div>
+				</div>
+			{/if}
+
+			{#if saveError}
+				<div class="mt-4 alert alert-error">
+					<span class="font-mono text-sm break-words whitespace-pre-wrap">{saveError}</span>
+				</div>
+			{/if}
+
 			<div class="mt-5 flex items-center gap-3">
-				<button class="btn btn-primary btn-sm" disabled title="Speichern folgt im nächsten Schritt">
-					Speichern (folgt)
+				<button class="btn btn-primary btn-sm" disabled={!canSave} onclick={save}>
+					{saving ? 'speichert …' : 'Speichern'}
 				</button>
-				{#if Object.keys(errors).length > 0}
-					<span class="text-xs text-error">{Object.keys(errors).length} Pflichtfeld(er) offen</span>
+				{#if validating}
+					<span class="flex items-center gap-1 text-xs text-base-content/50">
+						<span class="loading loading-spinner loading-xs"></span> prüft …
+					</span>
+				{:else if saveOk && !dirty}
+					<span class="text-xs text-success">✓ gespeichert</span>
+				{:else if dirty}
+					<span class="text-xs text-base-content/50">ungespeicherte Änderungen</span>
 				{/if}
 			</div>
 		</section>
 
-		<!-- Aufgelöste Vorschau -->
+		<!-- Aufgelöste Vorschau (live) -->
 		<section>
 			<h2 class="text-sm font-semibold text-base-content/70">Aufgelöste Konfiguration</h2>
 			<p class="mt-1 text-xs text-base-content/50">
-				Was aus <code>extends</code> und den Eingaben tatsächlich wird — wie
+				Was aus <code>extends</code> und den Eingaben tatsächlich wird — live geprüft vom Server,
+				wie
 				<code>glabs show</code>.
 			</p>
-			{#if a.resolveError}
+			{#if previewError}
 				<div class="mt-3 alert alert-warning">
-					<span class="text-sm">{a.resolveError}</span>
+					<span class="text-sm">{previewError}</span>
 				</div>
 			{:else}
 				<pre
