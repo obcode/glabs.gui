@@ -60,6 +60,16 @@
 		newGroupMembers = '';
 	}
 
+	// Einzelnes Mitglied zu einer bestehenden Gruppe hinzufügen (pro Gruppe ein Feld).
+	/** @type {Record<string, string>} */
+	let memberInputs = $state({});
+	/** @param {string} name */
+	function addMemberTo(name) {
+		const emails = extractEmails(memberInputs[name] ?? '');
+		if (emails.length > 0) groups = mergeGroups(groups, [{ name, members: emails }]);
+		memberInputs[name] = '';
+	}
+
 	function addPasted() {
 		students = mergeEmails(students, extractEmails(pasteText));
 		pasteText = '';
@@ -257,6 +267,25 @@
 								</span>
 							{/each}
 						</div>
+						<form
+							class="mt-2 flex gap-1"
+							onsubmit={(e) => {
+								e.preventDefault();
+								addMemberTo(g.name);
+							}}
+						>
+							<input
+								type="email"
+								class="input input-bordered input-xs flex-1 font-mono"
+								placeholder="E-Mail hinzufügen …"
+								bind:value={memberInputs[g.name]}
+							/>
+							<button
+								type="submit"
+								class="btn btn-outline btn-xs"
+								disabled={!(memberInputs[g.name] ?? '').trim()}>+ Mitglied</button
+							>
+						</form>
 					</div>
 				{/each}
 			</div>
