@@ -12,6 +12,14 @@
 	let confirmOpen = $state(false);
 	let actionError = $state('');
 
+	// Neues Assignment: Name eingeben → in den geführten Editor (Neu-Modus).
+	let newAssignment = $state('');
+	let newAssignmentValid = $derived(/^[A-Za-z0-9._-]+$/.test(newAssignment.trim()));
+	function goToNewAssignment() {
+		if (!newAssignmentValid) return;
+		goto(`/courses/${encodeURIComponent(course.name)}/${encodeURIComponent(newAssignment.trim())}`);
+	}
+
 	async function doDelete() {
 		deleting = true;
 		actionError = '';
@@ -106,7 +114,7 @@
 			Assignments ({course.assignmentNames.length})
 		</h2>
 		{#if course.assignmentNames.length === 0}
-			<p class="mt-2 text-sm text-base-content/50">Keine Assignments in diesem Kurs.</p>
+			<p class="mt-2 text-sm text-base-content/50">Noch keine Assignments in diesem Kurs.</p>
 		{:else}
 			<div class="mt-2 flex flex-wrap gap-1.5">
 				{#each course.assignmentNames as a (a)}
@@ -119,6 +127,29 @@
 				{/each}
 			</div>
 		{/if}
+
+		<form
+			class="mt-3 flex flex-wrap items-start gap-2"
+			onsubmit={(e) => {
+				e.preventDefault();
+				goToNewAssignment();
+			}}
+		>
+			<div class="flex flex-col gap-1">
+				<input
+					type="text"
+					class="input input-bordered input-sm font-mono"
+					bind:value={newAssignment}
+					placeholder="neues-assignment"
+				/>
+				{#if newAssignment.trim() && !newAssignmentValid}
+					<span class="text-xs text-error">Erlaubt: Buchstaben, Ziffern, „.", „-", „_".</span>
+				{/if}
+			</div>
+			<button type="submit" class="btn btn-primary btn-sm" disabled={!newAssignmentValid}>
+				➕ Neues Assignment
+			</button>
+		</form>
 	</section>
 
 	<section class="mt-6">
