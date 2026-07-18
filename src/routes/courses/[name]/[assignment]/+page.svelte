@@ -9,6 +9,23 @@
 	let a = $derived(data.assignment);
 	let schema = $derived(data.schema ?? []);
 
+	// Felder nach ihrer Sektion (`group`) bündeln, Reihenfolge wie im Schema.
+	// Leere Gruppe ("") ist der Top-Level-Abschnitt ohne Überschrift.
+	let groups = $derived.by(() => {
+		/** @type {{group: string, fields: any[]}[]} */
+		const out = [];
+		for (const f of schema) {
+			const g = f.group ?? '';
+			let bucket = out.find((b) => b.group === g);
+			if (!bucket) {
+				bucket = { group: g, fields: [] };
+				out.push(bucket);
+			}
+			bucket.fields.push(f);
+		}
+		return out;
+	});
+
 	/**
 	 * @param {any[]} sch
 	 * @param {{key: string, value: string}[]} own
@@ -179,8 +196,8 @@
 		<section>
 			<h2 class="text-sm font-semibold text-base-content/70">Konfiguration</h2>
 			<!-- oninput bubbelt von allen Feldern → eine Stelle löst die Server-Prüfung aus -->
-			<div class="mt-3 flex flex-col gap-4" oninput={scheduleValidate}>
-				{#each schema as field (field.key)}
+			<div class="mt-3 flex flex-col gap-6" oninput={scheduleValidate}>
+				{#snippet fieldControl(/** @type {any} */ field)}
 					<div class="flex flex-col gap-1">
 						<label class="flex items-center gap-2 text-sm font-medium" for="f-{field.key}">
 							{field.label}
@@ -230,6 +247,21 @@
 						{#if clientErrors[field.key]}
 							<p class="text-xs text-error">{clientErrors[field.key]}</p>
 						{/if}
+					</div>
+				{/snippet}
+
+				{#each groups as grp (grp.group)}
+					<div class="flex flex-col gap-4">
+						{#if grp.group}
+							<div
+								class="border-b border-base-200 pb-1 text-xs font-semibold tracking-wide text-base-content/50 uppercase"
+							>
+								{grp.group}
+							</div>
+						{/if}
+						{#each grp.fields as field (field.key)}
+							{@render fieldControl(field)}
+						{/each}
 					</div>
 				{/each}
 			</div>
