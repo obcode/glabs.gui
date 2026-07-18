@@ -166,14 +166,16 @@
 		</div>
 
 		{#if students.length > 0}
-			<div class="mt-3 flex flex-wrap gap-1">
+			<ul class="mt-3 flex flex-col divide-y divide-base-200 text-sm">
 				{#each sortedStudents as s (s)}
-					<span class="badge badge-ghost gap-1">
-						{s}
-						<button class="text-error" title="entfernen" onclick={() => removeStudent(s)}>×</button>
-					</span>
+					<li class="flex items-center justify-between gap-2 py-0.5">
+						<span class="font-mono break-all">{s}</span>
+						<button class="shrink-0 text-error" title="entfernen" onclick={() => removeStudent(s)}
+							>×</button
+						>
+					</li>
 				{/each}
-			</div>
+			</ul>
 		{:else}
 			<p class="mt-2 text-sm text-base-content/50">Noch keine Studierenden.</p>
 		{/if}
