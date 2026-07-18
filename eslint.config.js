@@ -45,6 +45,9 @@ export default ts.config(
 			// Interne Links brauchten sonst `resolve()` aus `$app/paths`. Ohne
 			// base-path ist das hier unnötig; Kandidat zum späteren Aktivieren.
 			'svelte/no-navigation-without-resolve': 'off',
+			// {@html} rendert ausschließlich ansi-to-html-Ausgabe mit escapeXML:true
+			// (HTML in Config-Werten wird escaped) — kein ungeprüfter User-Input.
+			'svelte/no-at-html-tags': 'off',
 			// Ungenutzte Bindings als Warnung sichtbar halten; `_`-Präfix erlaubt.
 			'@typescript-eslint/no-unused-vars': [
 				'warn',

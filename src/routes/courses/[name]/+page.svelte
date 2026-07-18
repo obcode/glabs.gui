@@ -110,7 +110,12 @@
 		{:else}
 			<div class="mt-2 flex flex-wrap gap-1.5">
 				{#each course.assignmentNames as a (a)}
-					<span class="badge badge-outline">{a}</span>
+					<a
+						class="badge badge-outline hover:badge-primary"
+						href="/courses/{encodeURIComponent(course.name)}/{encodeURIComponent(a)}"
+					>
+						{a}
+					</a>
 				{/each}
 			</div>
 		{/if}
