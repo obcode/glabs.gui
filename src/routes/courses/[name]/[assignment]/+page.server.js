@@ -31,6 +31,14 @@ export const load = async ({ params }) => {
 							description
 						}
 					}
+					branchRuleSchema {
+						key
+						label
+						description
+						kind
+						required
+						example
+					}
 					assignment(course: $course, name: $name) {
 						course
 						name
@@ -52,6 +60,7 @@ export const load = async ({ params }) => {
 		if (!d?.assignment) {
 			return {
 				schema: d?.assignmentSchema ?? [],
+				branchSchema: d?.branchRuleSchema ?? [],
 				assignment: {
 					course,
 					name: assignment,
@@ -64,7 +73,12 @@ export const load = async ({ params }) => {
 				isNew: true
 			};
 		}
-		return { schema: d.assignmentSchema ?? [], assignment: d.assignment, isNew: false };
+		return {
+			schema: d.assignmentSchema ?? [],
+			branchSchema: d.branchRuleSchema ?? [],
+			assignment: d.assignment,
+			isNew: false
+		};
 	} catch (e) {
 		// A thrown SvelteKit error (404) has a `status`; re-throw it untouched.
 		if (e && typeof e === 'object' && 'status' in e) throw e;
