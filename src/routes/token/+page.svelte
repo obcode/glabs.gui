@@ -1,10 +1,10 @@
-<script>
+<script lang="ts">
 	import { invalidateAll } from '$app/navigation';
 	import { env } from '$env/dynamic/public';
 	import { formatDateTime } from '$lib/format';
+	import type { PageData } from './$types';
 
-	/** @type {{ data: import('./$types').PageData }} */
-	let { data } = $props();
+	let { data }: { data: PageData } = $props();
 
 	// GitLab-Host für die Anleitung/Links. Über PUBLIC_GITLAB_HOST konfigurierbar,
 	// Default ist die vom LRZ gehostete Instanz.

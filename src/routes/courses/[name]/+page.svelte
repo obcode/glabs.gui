@@ -1,10 +1,10 @@
-<script>
+<script lang="ts">
 	import { invalidateAll, goto } from '$app/navigation';
 	import { formatDateTime } from '$lib/format';
 	import RosterEditor from '$lib/RosterEditor.svelte';
+	import type { PageData } from './$types';
 
-	/** @type {{ data: import('./$types').PageData }} */
-	let { data } = $props();
+	let { data }: { data: PageData } = $props();
 
 	let course = $derived(data.course);
 	let lint = $derived(data.lint ?? []);
@@ -89,8 +89,7 @@
 		}
 	}
 
-	/** @param {string} sev */
-	function sevBadge(sev) {
+	function sevBadge(sev: string) {
 		return sev === 'PROBLEM' ? 'badge-error' : 'badge-warning';
 	}
 </script>

@@ -1,10 +1,46 @@
-<script>
+<script lang="ts">
 	import Convert from 'ansi-to-html';
 	import { untrack } from 'svelte';
 	import { invalidateAll, goto } from '$app/navigation';
+	import type { PageData } from './$types';
 
-	/** @type {{ data: import('./$types').PageData }} */
-	let { data } = $props();
+	// Strukturtypen für die schema-getriebenen Felder (decken die Query-Formen von
+	// assignmentSchema/approvalSettingsSchema mit Optionen und branchRuleSchema/
+	// approvalRuleSchema ohne Optionen ab).
+	type FieldOption = { value: string; label: string; description: string };
+	type FieldMeta = {
+		key: string;
+		label: string;
+		description: string;
+		kind: string;
+		required: boolean;
+		group?: string;
+		deprecated?: boolean;
+		example?: string | null;
+		options: FieldOption[];
+	};
+	type RuleField = {
+		key: string;
+		label: string;
+		description: string;
+		kind: string;
+		required: boolean;
+		example?: string | null;
+	};
+	type FieldValue = { key: string; value: string };
+	type Draft = FieldValue[];
+	// Dynamisches, schema-getriebenes Formular: Werte sind pro Feld String (Text/
+	// Enum) oder Boolean (Toggle) — als Record mit `any`-Werten gehalten, damit
+	// `bind:value`/`bind:checked` generisch über beliebige Feld-Keys binden können.
+	type FormRow = Record<string, any>;
+	type ValidationResult = {
+		ok: boolean;
+		errors: string[];
+		resolved?: string | null;
+		resolveError?: string | null;
+	};
+
+	let { data }: { data: PageData } = $props();
 
 	let a = $derived(data.assignment);
 	let schema = $derived(data.schema ?? []);
@@ -17,8 +53,7 @@
 	// Felder nach ihrer Sektion (`group`) bündeln, Reihenfolge wie im Schema.
 	// Leere Gruppe ("") ist der Top-Level-Abschnitt ohne Überschrift.
 	let groups = $derived.by(() => {
-		/** @type {{group: string, fields: any[]}[]} */
-		const out = [];
+		const out: { group: string; fields: FieldMeta[] }[] = [];
 		for (const f of schema) {
 			const g = f.group ?? '';
 			let bucket = out.find((b) => b.group === g);
@@ -34,12 +69,10 @@
 	/**
 	 * Flaches Formular: Skalarfelder (aus `sch`) plus die Approval-Settings, die
 	 * unter approvals.settings.<key> abgelegt sind (alle ENUM → String).
-	 * @param {any[]} sch @param {any[]} ssch @param {{key: string, value: string}[]} own
 	 */
-	function build(sch, ssch, own) {
+	function build(sch: FieldMeta[], ssch: FieldMeta[], own: FieldValue[]): FormRow {
 		const ownMap = Object.fromEntries((own ?? []).map((o) => [o.key, o.value]));
-		/** @type {Record<string, any>} */
-		const f = {};
+		const f: FormRow = {};
 		for (const field of sch ?? []) {
 			const v = ownMap[field.key] ?? '';
 			f[field.key] = field.kind === 'BOOL' ? v === 'true' : v;
@@ -52,16 +85,13 @@
 
 	/**
 	 * Repeat-Group-Zeilen aus indizierten own-Keys (`<prefix>.<i>.<feld>`).
-	 * @param {any[]} rsch @param {{key: string, value: string}[]} own @param {string} prefix
 	 */
-	function buildRows(rsch, own, prefix) {
+	function buildRows(rsch: RuleField[], own: FieldValue[], prefix: string): FormRow[] {
 		const map = Object.fromEntries((own ?? []).map((o) => [o.key, o.value]));
 		const count = parseInt(map[`${prefix}.count`] ?? '0', 10) || 0;
-		/** @type {Record<string, any>[]} */
-		const rows = [];
+		const rows: FormRow[] = [];
 		for (let i = 0; i < count; i++) {
-			/** @type {Record<string, any>} */
-			const row = {};
+			const row: FormRow = {};
 			for (const f of rsch ?? []) {
 				const v = map[`${prefix}.${i}.${f.key}`] ?? '';
 				row[f.key] = f.kind === 'BOOL' ? v === 'true' : v;
@@ -71,20 +101,17 @@
 		return rows;
 	}
 
-	/** @param {any[]} rsch */
-	function emptyRow(rsch) {
-		/** @type {Record<string, any>} */
-		const row = {};
+	function emptyRow(rsch: RuleField[]): FormRow {
+		const row: FormRow = {};
 		for (const f of rsch ?? []) row[f.key] = f.kind === 'BOOL' ? false : '';
 		return row;
 	}
 
 	/**
 	 * Repeat-Group-Zeilen → Draft-Keys (count-Sentinel + indizierte Keys).
-	 * @param {Record<string, any>[]} rows @param {any[]} rsch @param {string} prefix
 	 */
-	function rowsToDraft(rows, rsch, prefix) {
-		const out = [{ key: `${prefix}.count`, value: String(rows.length) }];
+	function rowsToDraft(rows: FormRow[], rsch: RuleField[], prefix: string): Draft {
+		const out: Draft = [{ key: `${prefix}.count`, value: String(rows.length) }];
 		rows.forEach((row, i) => {
 			for (const f of rsch) {
 				out.push({
@@ -97,8 +124,8 @@
 	}
 
 	/** Formular-Entwurf → GraphQL-Draft (alle Werte als String; Booleans true/false). */
-	function toDraft() {
-		const draft = schema.map((/** @type {any} */ field) => ({
+	function toDraft(): Draft {
+		const draft: Draft = schema.map((field) => ({
 			key: field.key,
 			value: field.kind === 'BOOL' ? String(!!form[field.key]) : String(form[field.key] ?? '')
 		}));
@@ -114,26 +141,22 @@
 
 	// Bearbeitbarer Zustand + Vergleichsbasis für „geändert?". untrack: Initialwert
 	// bewusst einmal; das Zurücksetzen übernimmt der $effect unten.
-	/** @type {Record<string, any>} */
-	let form = $state(untrack(() => build(data.schema, data.settingsSchema, data.assignment.own)));
-	/** @type {Record<string, any>} */
-	let original = $state(
+	let form = $state<FormRow>(
 		untrack(() => build(data.schema, data.settingsSchema, data.assignment.own))
 	);
-	/** @type {Record<string, any>[]} */
-	let branchRows = $state(
+	let original = $state<FormRow>(
+		untrack(() => build(data.schema, data.settingsSchema, data.assignment.own))
+	);
+	let branchRows = $state<FormRow[]>(
 		untrack(() => buildRows(data.branchSchema, data.assignment.own, 'branches'))
 	);
-	/** @type {Record<string, any>[]} */
-	let originalBranches = $state(
+	let originalBranches = $state<FormRow[]>(
 		untrack(() => buildRows(data.branchSchema, data.assignment.own, 'branches'))
 	);
-	/** @type {Record<string, any>[]} */
-	let approvalRows = $state(
+	let approvalRows = $state<FormRow[]>(
 		untrack(() => buildRows(data.ruleSchema, data.assignment.own, 'approvals.rules'))
 	);
-	/** @type {Record<string, any>[]} */
-	let originalApprovals = $state(
+	let originalApprovals = $state<FormRow[]>(
 		untrack(() => buildRows(data.ruleSchema, data.assignment.own, 'approvals.rules'))
 	);
 
@@ -167,8 +190,7 @@
 		branchRows = [...branchRows, emptyRow(branchSchema)];
 		scheduleValidate();
 	}
-	/** @param {number} i */
-	function removeBranch(i) {
+	function removeBranch(i: number) {
 		branchRows = branchRows.filter((_, idx) => idx !== i);
 		scheduleValidate();
 	}
@@ -176,22 +198,19 @@
 		approvalRows = [...approvalRows, emptyRow(ruleSchema)];
 		scheduleValidate();
 	}
-	/** @param {number} i */
-	function removeApprovalRule(i) {
+	function removeApprovalRule(i: number) {
 		approvalRows = approvalRows.filter((_, idx) => idx !== i);
 		scheduleValidate();
 	}
 
 	// Server-Validierung (debounced) für Live-Vorschau + Fehler.
-	/** @typedef {{ok:boolean, errors:string[], resolved?:string|null, resolveError?:string|null}} ValidationResult */
-	let serverResult = $state(/** @type {ValidationResult|null} */ (null));
+	let serverResult = $state<ValidationResult | null>(null);
 	let validating = $state(false);
 	let saving = $state(false);
 	let saveError = $state('');
 	let saveOk = $state(false);
 
-	/** @type {ReturnType<typeof setTimeout>|undefined} */
-	let debounce;
+	let debounce: ReturnType<typeof setTimeout> | undefined;
 	let validateSeq = 0;
 
 	function scheduleValidate() {
@@ -276,8 +295,7 @@
 
 	// Client-seitige Pflichtprüfung (nur Vorab-Hinweis; verbindlich prüft der Server).
 	let clientErrors = $derived.by(() => {
-		/** @type {Record<string, string>} */
-		const e = {};
+		const e: Record<string, string> = {};
 		if (form.abstract === true) return e;
 		for (const field of schema) {
 			if (field.required && (form[field.key] === '' || form[field.key] == null)) {
@@ -300,9 +318,8 @@
 		return convert.toHtml(preview);
 	});
 
-	/** @param {any} field @param {string} val */
-	function optionDescription(field, val) {
-		const o = (field.options ?? []).find((/** @type {any} */ x) => x.value === val);
+	function optionDescription(field: FieldMeta, val: string) {
+		const o = (field.options ?? []).find((x) => x.value === val);
 		return o?.description ?? '';
 	}
 </script>
@@ -353,7 +370,7 @@
 			<h2 class="text-sm font-semibold text-base-content/70">Konfiguration</h2>
 			<!-- oninput bubbelt von allen Feldern → eine Stelle löst die Server-Prüfung aus -->
 			<div class="mt-3 flex flex-col gap-6" oninput={scheduleValidate}>
-				{#snippet fieldControl(/** @type {any} */ field)}
+				{#snippet fieldControl(field: FieldMeta)}
 					<div class="flex flex-col gap-1">
 						<label class="flex items-center gap-2 text-sm font-medium" for="f-{field.key}">
 							{field.label}

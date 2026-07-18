@@ -9,8 +9,8 @@ import globals from 'globals';
 // `flat/prettier`, um formatierungsnahe Regeln wieder abzuschalten.
 export default ts.config(
 	{
-		// Build-Artefakte und Scaffolding nicht linten.
-		ignores: ['build/', '.svelte-kit/', 'package/']
+		// Build-Artefakte, Scaffolding und generierten GraphQL-Code nicht linten.
+		ignores: ['build/', '.svelte-kit/', 'package/', 'src/lib/gql/']
 	},
 	js.configs.recommended,
 	...ts.configs.recommended,

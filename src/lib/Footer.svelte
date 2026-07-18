@@ -1,27 +1,27 @@
-<script>
-	import { displayVersion as display, baseReleaseTag, isExactTag } from '$lib/version.js';
+<script lang="ts">
+	import { displayVersion as display, baseReleaseTag, isExactTag } from '$lib/version';
 
-	/**
-	 * @typedef {Object} ServerInfo
-	 * @property {string} [version]  glabs-web-Version: „vX.Y.Z" (Release) oder „dev-<rev>…" (dev-Build)
-	 * @property {string} [commit]   Git-Commit des Backends
-	 * @property {string} [date]     Release-/Build-Zeitpunkt (RFC3339 UTC); „unknown" bei dev-Build
-	 *
-	 * @typedef {Object} Props
-	 * @property {string} [guiVersion]           eigene GUI-Version (Buildzeit, aus semantic-release-Tag)
-	 * @property {string} [buildTime]            Build-Zeitpunkt (ISO-8601), aus Vite-`define`
-	 * @property {ServerInfo|null} [serverInfo]  Server-Infos von glabs-web
-	 */
+	// glabs-web-Version-Infos: version = „vX.Y.Z" (Release) oder „dev-<rev>…"
+	// (dev-Build); commit = Git-Commit; date = Release-/Build-Zeitpunkt (RFC3339
+	// UTC), „unknown" bei dev-Build.
+	type ServerInfo = { version?: string; commit?: string; date?: string };
 
-	/** @type {Props} */
-	let { guiVersion, buildTime, serverInfo = null } = $props();
+	interface Props {
+		/** eigene GUI-Version (Buildzeit, aus semantic-release-Tag) */
+		guiVersion?: string;
+		/** Build-Zeitpunkt (ISO-8601), aus Vite-`define` */
+		buildTime?: string;
+		/** Server-Infos von glabs-web */
+		serverInfo?: ServerInfo | null;
+	}
+
+	let { guiVersion, buildTime, serverInfo = null }: Props = $props();
 
 	/**
 	 * Build-/Release-Zeitpunkt fürs Footer formatieren — immer Datum + Uhrzeit.
 	 * Feste Zeitzone/Locale, damit SSR und Client identisch rendern.
-	 * @param {string|null|undefined} iso
 	 */
-	function formatBuildTime(iso) {
+	function formatBuildTime(iso: string | null | undefined) {
 		if (!iso) return null;
 		const d = new Date(iso);
 		if (isNaN(d.getTime())) return null;

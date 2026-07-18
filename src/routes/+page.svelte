@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	// Gerüst-Landing. Der Config-Editor (Kurse, Assignments, YAML-Export) und das
 	// Auth-Gate gegen glabs-web folgen in den nächsten Schritten.
 	const features = [

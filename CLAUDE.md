@@ -17,6 +17,12 @@ zwischen CLI und Web; sie teilen keinen Live-State.
 
 - **SvelteKit 2**, **adapter-node** (SSR + Node-Server, kein statischer Export)
 - **Svelte 5 mit Runes global** (`svelte.config.js` erzwingt `runes: true`)
+- **TypeScript** durchgehend (`.ts` + `<script lang="ts">`, `strict: true`), keine
+  `.js`-App-Quellen mehr (nur die Config-Dateien `svelte.config.js`/`vite.config.js`/
+  `eslint.config.js` bleiben JS). TypeScript bleibt vorerst auf **5.x**: TS 7 (der
+  Go-basierte `tsc`) crasht das aktuelle `svelte-check` — Bump erst, wenn kompatibel.
+- **GraphQL Codegen** (`@graphql-codegen/client-preset`): getippte Operationen aus
+  dem eingecheckten Schema — siehe „GraphQL & Typen" unten
 - **Tailwind v4** (CSS-first, kein `tailwind.config.js`) + **daisyUI 5**
 - **pnpm** (Version im `packageManager`-Feld gepinnt), **Vitest**, **ESLint 10 flat config**, **Prettier**
 
@@ -24,13 +30,18 @@ zwischen CLI und Web; sie teilen keinen Live-State.
 
 ```sh
 pnpm install
-pnpm dev            # Vite Dev-Server
-pnpm check          # svelte-kit sync && svelte-check — CI-blockierend
+pnpm dev            # codegen + Vite Dev-Server
+pnpm check          # codegen + svelte-kit sync + svelte-check — CI-blockierend
 pnpm lint           # prettier --check . && eslint .
 pnpm format         # prettier --write .
 pnpm test           # vitest run (Unit-Tests in src/**/*.{test,spec}.{js,ts})
-pnpm build          # Produktions-Build
+pnpm build          # codegen + Produktions-Build
+pnpm codegen        # GraphQL-Typen aus schema.graphql neu erzeugen (src/lib/gql/)
+pnpm schema:pull    # schema.graphql frisch aus ../glabs/web/graph/*.graphqls ziehen
 ```
+
+`dev`, `check` und `build` rufen `graphql-codegen` selbst vorab auf — im Normalfall
+musst du `pnpm codegen` nicht separat starten.
 
 Vor dem Commit laufen `lint-staged` (husky pre-commit) über geänderte Dateien.
 Vor einem PR lokal `pnpm check && pnpm lint && pnpm test && pnpm build` grün haben.
@@ -61,13 +72,43 @@ bewusst **kuratiert** (nicht `themes: all`); die Liste in `app.css` und die im
 Theme-Umschalter (`Nav.svelte`) müssen übereinstimmen. Theme wird via
 `theme-change` als `data-theme` am `<html>` gesetzt.
 
-## Daten & Auth (ab dem nächsten Schritt)
+## GraphQL & Typen (Codegen)
 
-GraphQL gegen `glabs-web`, aufgerufen über `graphql-request`. Muster: SSR-`load`
-holt Daten serverseitig; Mutationen laufen über einen `/api/<domain>`-Proxy im
-gui-Server, danach `invalidateAll()`.
+Alle Operationen sind **getippt** — es gibt kein `import { gql } from 'graphql-request'`
+mehr im App-Code:
 
-### SSR-Identity-Falle (einplanen, sobald SSR gegen das Backend spricht)
+- Operationen werden mit der `graphql()`-Funktion aus **`$lib/gql`** geschrieben
+  (von `@graphql-codegen/client-preset` erzeugt); das Query/Mutation-Dokument steht
+  als Template-Literal im Aufruf. Der Rückgabewert ist ein
+  `TypedDocumentNode<Ergebnis, Variablen>`.
+- `backendRequest(doc, vars)` (`$lib/server/backend`) und `gqlProxy(doc, vars)`
+  (`$lib/server/gqlProxy`) leiten diese Typen weiter: das Ergebnis von `load`/Proxy
+  ist voll typisiert, Variablen werden geprüft, `vars` ist bei variablenlosen
+  Operationen optional und sonst Pflicht.
+- **Operationsnamen müssen global eindeutig sein** (client-preset-Anforderung), z. B.
+  gibt es `query Me` (Layout) und separat `query AuthCheck` (hooks) für dieselbe
+  `me`-Abfrage.
+- Enums sind als **String-Literal-Unions** generiert (`enumsAsTypes`), damit
+  `field.kind === 'BOOL'` u. Ä. direkt gegen Strings vergleichen; der `Time`-Skalar
+  ist `string`.
+
+Ablauf/Quellen:
+
+- `schema.graphql` (Repo-Wurzel) ist eine **eingecheckte Kopie** des Backend-Schemas.
+  Sie kommt via `pnpm schema:pull` aus `../glabs/web/graph/*.graphqls` (Schwester-
+  verzeichnis) — so laufen Codegen und Typecheck reproduzierbar in CI, ohne
+  laufendes Backend. Bei Backend-Schema-Änderungen: `pnpm schema:pull && pnpm codegen`
+  und beides mitcommitten.
+- `codegen.ts` konfiguriert client-preset; Output ist **`src/lib/gql/`** (eingecheckt,
+  von Prettier/ESLint ignoriert). `dev`/`check`/`build` regenerieren es vorab.
+
+## Daten & Auth
+
+GraphQL gegen `glabs-web`, aufgerufen über `graphql-request` mit getippten
+Dokumenten (siehe oben). Muster: SSR-`load` holt Daten serverseitig; Mutationen
+laufen über einen `/api/<domain>`-Proxy im gui-Server, danach `invalidateAll()`.
+
+### SSR-Identity-Falle
 
 SvelteKit-SSR läuft im gui-Container **ohne OIDC-Cookie**. Ruft der SSR-`load`
 die öffentliche URL, bounct der oauth2-proxy auf die Login-Seite und
@@ -91,9 +132,11 @@ authentifizierten Principal, nie aus einem GraphQL-Argument.
 
 ## Struktur
 
-- `src/routes/` — Seiten (`+page.svelte`), Layouts, `load`-Funktionen, `/api`-Proxies
+- `src/routes/` — Seiten (`+page.svelte`), Layouts, `load`-Funktionen (`+*.server.ts`), `/api`-Proxies (`+server.ts`)
 - `src/lib/` — wiederverwendbare Komponenten und Logik (`$lib/…`)
 - `src/lib/server/` — **nur serverseitig** (Backend-Client, Auth-Kontext); nie in Client-Code importieren
+- `src/lib/gql/` — **von graphql-codegen erzeugt** (`graphql()` + Typen); nicht von Hand bearbeiten
+- `schema.graphql` / `codegen.ts` / `scripts/pull-schema.mjs` — Codegen-Setup (siehe „GraphQL & Typen")
 - `static/` — unverändert ausgelieferte Assets
 - `src/app.css` — Tailwind/daisyUI-Konfiguration
-- `src/hooks.server.js` — Auth-Gate (ab nächstem Schritt)
+- `src/hooks.server.ts` — Auth-Gate (Zugangs-Riegel gegen die Backend-Allowlist)
