@@ -30,6 +30,20 @@
 			JSON.stringify((course.groups ?? []).map((g) => ({ name: g.name, members: g.members })))
 	);
 
+	// Sortierte Anzeige (die gespeicherte Reihenfolge bleibt unverändert):
+	// Studierende alphabetisch, Gruppen nach Name (Zahlen natürlich sortiert),
+	// Mitglieder innerhalb einer Gruppe alphabetisch.
+	const collator = new Intl.Collator('de', { numeric: true, sensitivity: 'base' });
+	let sortedStudents = $derived([...students].sort((x, y) => collator.compare(x, y)));
+	let sortedGroups = $derived(
+		[...groups]
+			.map((g) => ({
+				name: g.name,
+				members: [...g.members].sort((x, y) => collator.compare(x, y))
+			}))
+			.sort((x, y) => collator.compare(x.name, y.name))
+	);
+
 	let pasteText = $state('');
 	let savingStudents = $state(false);
 	let savingGroups = $state(false);
@@ -152,8 +166,8 @@
 		</div>
 
 		{#if students.length > 0}
-			<div class="mt-3 flex max-h-48 flex-wrap gap-1 overflow-auto">
-				{#each students as s (s)}
+			<div class="mt-3 flex flex-wrap gap-1">
+				{#each sortedStudents as s (s)}
 					<span class="badge badge-ghost gap-1">
 						{s}
 						<button class="text-error" title="entfernen" onclick={() => removeStudent(s)}>×</button>
@@ -205,8 +219,8 @@
 		</div>
 
 		{#if groups.length > 0}
-			<div class="mt-3 flex max-h-56 flex-col gap-2 overflow-auto">
-				{#each groups as g (g.name)}
+			<div class="mt-3 flex flex-col gap-2">
+				{#each sortedGroups as g (g.name)}
 					<div class="rounded-lg border border-base-200 p-2">
 						<div class="flex items-center justify-between">
 							<span class="text-sm font-medium"

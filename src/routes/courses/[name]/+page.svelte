@@ -156,11 +156,6 @@
 	</section>
 
 	<section class="mt-6">
-		<h2 class="text-sm font-semibold text-base-content/70">Studierende & Gruppen</h2>
-		<RosterEditor {course} />
-	</section>
-
-	<section class="mt-6">
 		<h2 class="text-sm font-semibold text-base-content/70">
 			Assignments ({course.assignmentNames.length})
 		</h2>
@@ -201,6 +196,11 @@
 				➕ Neues Assignment
 			</button>
 		</form>
+	</section>
+
+	<section class="mt-6">
+		<h2 class="text-sm font-semibold text-base-content/70">Studierende & Gruppen</h2>
+		<RosterEditor {course} />
 	</section>
 
 	<section class="mt-6">
