@@ -18,6 +18,13 @@
 		`/courses/${encodeURIComponent(data.course)}/${encodeURIComponent(data.assignment)}`
 	);
 
+	// Keep the live log scrolled to the newest line (the box only fits ~10 lines).
+	let logEl: HTMLUListElement | undefined = $state();
+	$effect(() => {
+		void messages.length;
+		if (logEl) logEl.scrollTop = logEl.scrollHeight;
+	});
+
 	onMount(() => {
 		const stop = subscribeAssignmentReport(data.course, data.assignment, {
 			next: (p) => {
@@ -70,6 +77,7 @@
 			</div>
 			{#if messages.length > 0}
 				<ul
+					bind:this={logEl}
 					class="mt-3 max-h-56 overflow-auto font-mono text-xs leading-relaxed text-base-content/60"
 				>
 					{#each messages as m, i (i)}

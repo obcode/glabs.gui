@@ -317,7 +317,15 @@
 
 	let resolvedHtml = $derived.by(() => {
 		if (!preview) return '';
-		const convert = new Convert({ fg: '#cdd6f4', bg: '#1e1e2e', escapeXML: true, newline: false });
+		// fg:'inherit' so uncolored/reset text follows the theme's text color; the
+		// ANSI accent colors (cyan/yellow/green/red) ride on top and stay readable on
+		// the themed surface (see the <pre> bg-base-200/text-base-content below).
+		const convert = new Convert({
+			fg: 'inherit',
+			bg: 'transparent',
+			escapeXML: true,
+			newline: false
+		});
 		return convert.toHtml(preview);
 	});
 
@@ -621,8 +629,7 @@
 				</div>
 			{:else}
 				<pre
-					class="mt-3 max-h-[70vh] overflow-auto rounded-xl p-4 text-xs leading-relaxed"
-					style="background:#1e1e2e;color:#cdd6f4;">{@html resolvedHtml}</pre>
+					class="mt-3 max-h-[70vh] overflow-auto rounded-xl border border-base-200 bg-base-200 p-4 text-xs leading-relaxed text-base-content">{@html resolvedHtml}</pre>
 			{/if}
 		</section>
 	</div>
