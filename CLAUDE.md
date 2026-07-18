@@ -108,6 +108,12 @@ GraphQL gegen `glabs-web`, aufgerufen über `graphql-request` mit getippten
 Dokumenten (siehe oben). Muster: SSR-`load` holt Daten serverseitig; Mutationen
 laufen über einen `/api/<domain>`-Proxy im gui-Server, danach `invalidateAll()`.
 
+**Subscriptions** sind die Ausnahme: sie laufen im **Browser** über `graphql-ws`
+direkt gegen `PUBLIC_GLABS_SERVER` (http→ws). Die WS-Verbindung trägt das Cookie,
+der Proxy injiziert `X-Remote-User` auf dem Upgrade wie bei jedem Request — daher
+kein interner Hop und kein SSR. Bisher nur der Report-Live-Fortschritt
+(`$lib/reportSubscription`, `assignmentReportProgress`).
+
 ### SSR-Identity-Falle
 
 SvelteKit-SSR läuft im gui-Container **ohne OIDC-Cookie**. Ruft der SSR-`load`

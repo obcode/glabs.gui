@@ -1,16 +1,40 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { formatDateTime } from '$lib/format';
+	import { subscribeAssignmentReport, type ReportProgress } from '$lib/reportSubscription';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
-	let report = $derived(data.report);
-	let error = $derived(data.error);
-	// „Kein Token hinterlegt" ist der häufigste Fehler → gezielt auf /token verweisen.
-	let tokenMissing = $derived(!!error && /token/i.test(error));
+	type Report = NonNullable<ReportProgress['report']>;
+
+	let messages = $state<string[]>([]);
+	let report = $state<Report | null>(null);
+	let errorMsg = $state('');
+	let done = $state(false);
+
+	let tokenMissing = $derived(!!errorMsg && /token/i.test(errorMsg));
 	let assignmentHref = $derived(
 		`/courses/${encodeURIComponent(data.course)}/${encodeURIComponent(data.assignment)}`
 	);
+
+	onMount(() => {
+		const stop = subscribeAssignmentReport(data.course, data.assignment, {
+			next: (p) => {
+				if (p.message) messages = [...messages, p.message];
+				if (p.done) {
+					if (p.error) errorMsg = p.error;
+					else report = p.report ?? null;
+					done = true;
+				}
+			},
+			error: (msg) => {
+				errorMsg = msg;
+				done = true;
+			}
+		});
+		return stop;
+	});
 </script>
 
 <svelte:head><title>Report · {data.assignment} · {data.course} · glabs</title></svelte:head>
@@ -38,10 +62,26 @@
 		{/if}
 	</div>
 
-	{#if error}
+	{#if !done}
+		<div class="mt-6 rounded-2xl border border-base-200 p-4">
+			<div class="flex items-center gap-2 text-sm font-medium">
+				<span class="loading loading-spinner loading-sm"></span>
+				Report wird geladen … bei vielen Repos dauert das einen Moment.
+			</div>
+			{#if messages.length > 0}
+				<ul
+					class="mt-3 max-h-56 overflow-auto font-mono text-xs leading-relaxed text-base-content/60"
+				>
+					{#each messages as m, i (i)}
+						<li>{m}</li>
+					{/each}
+				</ul>
+			{/if}
+		</div>
+	{:else if errorMsg}
 		<div class="mt-6 alert alert-error">
 			<div class="text-sm">
-				<div class="font-mono break-words whitespace-pre-wrap">{error}</div>
+				<div class="font-mono break-words whitespace-pre-wrap">{errorMsg}</div>
 				{#if tokenMissing}
 					<div class="mt-2">
 						Hinterlege einen GitLab-Token unter
