@@ -33,12 +33,18 @@ export const authContext = new AsyncLocalStorage();
  * @param {AuthContext} [ctx] expliziter Kontext (Fallback: laufender Request)
  */
 export function backendClient(ctx) {
+	const url = env.GLABS_SERVER;
+	// Fail-fast bei Fehlkonfiguration (narrowt zugleich `string | undefined` →
+	// `string`). Der Wurf wird von den Aufrufern gefangen: im Layout → me/
+	// serverInfo = null, im Zugangs-Riegel → kein `.response` → nicht aussperren.
+	if (!url) throw new Error('GLABS_SERVER is not set — cannot reach glabs-web');
+
 	const { remoteUser, remoteDisplayname } = ctx ?? authContext.getStore() ?? {};
 	/** @type {Record<string, string>} */
 	const headers = {};
 	if (remoteUser) headers['X-Remote-User'] = remoteUser;
 	if (remoteDisplayname) headers['X-Remote-Displayname'] = remoteDisplayname;
-	return new GraphQLClient(env.GLABS_SERVER, { headers });
+	return new GraphQLClient(url, { headers });
 }
 
 /**
