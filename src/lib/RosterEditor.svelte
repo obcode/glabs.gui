@@ -1,15 +1,17 @@
-<script>
+<script lang="ts">
 	import { untrack } from 'svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { extractEmails, extractGroups, mergeEmails, mergeGroups } from '$lib/roster';
+	import type { RosterGroup } from '$lib/roster';
 
-	/** @type {{ course: { name: string, students?: string[], groups?: { name: string, members: string[] }[] } }} */
-	let { course } = $props();
+	let {
+		course
+	}: {
+		course: { name: string; students?: string[]; groups?: { name: string; members: string[] }[] };
+	} = $props();
 
-	/** @type {string[]} */
-	let students = $state(untrack(() => [...(course.students ?? [])]));
-	/** @type {{ name: string, members: string[] }[]} */
-	let groups = $state(
+	let students = $state<string[]>(untrack(() => [...(course.students ?? [])]));
+	let groups = $state<RosterGroup[]>(
 		untrack(() => (course.groups ?? []).map((g) => ({ name: g.name, members: [...g.members] })))
 	);
 
@@ -61,10 +63,8 @@
 	}
 
 	// Einzelnes Mitglied zu einer bestehenden Gruppe hinzufügen (pro Gruppe ein Feld).
-	/** @type {Record<string, string>} */
-	let memberInputs = $state({});
-	/** @param {string} name */
-	function addMemberTo(name) {
+	let memberInputs = $state<Record<string, string>>({});
+	function addMemberTo(name: string) {
 		const emails = extractEmails(memberInputs[name] ?? '');
 		if (emails.length > 0) groups = mergeGroups(groups, [{ name, members: emails }]);
 		memberInputs[name] = '';
@@ -77,8 +77,7 @@
 
 	// CSV/TSV als Text; xlsx wird lazy entpackt und in TSV gewandelt (der Parser
 	// wird nur geladen, wenn wirklich eine xlsx hochgeladen wird).
-	/** @param {File} file */
-	async function fileToText(file) {
+	async function fileToText(file: File) {
 		if (/\.xlsx$/i.test(file.name)) {
 			const { xlsxToTsv } = await import('$lib/xlsx');
 			return xlsxToTsv(await file.arrayBuffer());
@@ -86,32 +85,27 @@
 		return file.text();
 	}
 
-	/** @param {Event} e */
-	async function onStudentsFile(e) {
-		const input = /** @type {HTMLInputElement} */ (e.currentTarget);
+	async function onStudentsFile(e: Event) {
+		const input = e.currentTarget as HTMLInputElement;
 		const file = input.files?.[0];
 		if (file) students = mergeEmails(students, extractEmails(await fileToText(file)));
 		input.value = '';
 	}
 
-	/** @param {Event} e */
-	async function onGroupsFile(e) {
-		const input = /** @type {HTMLInputElement} */ (e.currentTarget);
+	async function onGroupsFile(e: Event) {
+		const input = e.currentTarget as HTMLInputElement;
 		const file = input.files?.[0];
 		if (file) groups = mergeGroups(groups, extractGroups(await fileToText(file)));
 		input.value = '';
 	}
 
-	/** @param {string} email */
-	function removeStudent(email) {
+	function removeStudent(email: string) {
 		students = students.filter((s) => s !== email);
 	}
-	/** @param {string} name */
-	function removeGroup(name) {
+	function removeGroup(name: string) {
 		groups = groups.filter((g) => g.name !== name);
 	}
-	/** @param {string} name @param {string} email */
-	function removeMember(name, email) {
+	function removeMember(name: string, email: string) {
 		groups = groups
 			.map((g) => (g.name === name ? { name, members: g.members.filter((m) => m !== email) } : g))
 			.filter((g) => g.members.length > 0);

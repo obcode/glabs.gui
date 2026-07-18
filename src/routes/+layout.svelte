@@ -1,18 +1,13 @@
-<script>
+<script lang="ts">
 	import '../app.css';
 	import Nav from '$lib/Nav.svelte';
 	import Footer from '$lib/Footer.svelte';
 	import { themeChange } from 'theme-change';
 	import { onMount } from 'svelte';
+	import type { Snippet } from 'svelte';
+	import type { LayoutData } from './$types';
 
-	/**
-	 * @typedef {Object} Props
-	 * @property {import('svelte').Snippet} [children]
-	 * @property {import('./$types').LayoutData} [data]
-	 */
-
-	/** @type {Props} */
-	let { children, data } = $props();
+	let { children, data }: { children?: Snippet; data?: LayoutData } = $props();
 
 	onMount(() => {
 		themeChange(false);

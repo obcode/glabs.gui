@@ -10,20 +10,27 @@ Austauschformat zwischen CLI und Web.
 
 ## Stack
 
-SvelteKit 2 · Svelte 5 (Runes global) · Tailwind v4 · daisyUI 5 · pnpm ·
-adapter-node. Backend ist `glabs-web` (GraphQL, im
-[glabs-Repo](https://github.com/obcode/glabs) unter `cmd/glabs-web`).
+SvelteKit 2 · Svelte 5 (Runes global) · TypeScript · Tailwind v4 · daisyUI 5 ·
+pnpm · adapter-node. GraphQL-Operationen sind über
+[GraphQL Codegen](https://the-guild.dev/graphql/codegen) getippt. Backend ist
+`glabs-web` (GraphQL, im [glabs-Repo](https://github.com/obcode/glabs) unter
+`cmd/glabs-web`).
 
 ## Entwicklung
 
 ```sh
 pnpm install
-pnpm dev            # Dev-Server (Vite)
+pnpm dev            # Dev-Server (Vite), erzeugt vorab die GraphQL-Typen
 pnpm check          # svelte-check (blockierend in CI)
 pnpm lint           # prettier --check + eslint
 pnpm test           # vitest
 pnpm build          # Produktions-Build (adapter-node)
+pnpm codegen        # GraphQL-Typen neu erzeugen (src/lib/gql/)
+pnpm schema:pull    # schema.graphql frisch aus dem glabs-Backend-Repo ziehen
 ```
+
+Die GraphQL-Typen werden aus der eingecheckten `schema.graphql` erzeugt;
+`dev`/`check`/`build` rufen den Codegen selbst vorab auf.
 
 `.env` aus `.env.example` ableiten. Zwei URLs auf denselben `glabs-web`-Server
 (siehe [CLAUDE.md](CLAUDE.md), Abschnitt „SSR-Identity-Falle").

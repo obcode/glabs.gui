@@ -1,16 +1,15 @@
-<script>
+<script lang="ts">
 	import { invalidateAll, goto } from '$app/navigation';
 	import { formatDateTime } from '$lib/format';
+	import type { PageData } from './$types';
 
-	/** @type {{ data: import('./$types').PageData }} */
-	let { data } = $props();
+	let { data }: { data: PageData } = $props();
 
 	let courses = $derived(data.courses ?? []);
 
 	let importing = $state(false);
 	let importError = $state('');
-	/** @type {HTMLInputElement | undefined} */
-	let fileInput;
+	let fileInput: HTMLInputElement | undefined = $state();
 
 	// Neuen Kurs from scratch anlegen.
 	let newOpen = $state(false);
@@ -62,9 +61,8 @@
 		}
 	}
 
-	/** @param {Event} e */
-	async function onFile(e) {
-		const input = /** @type {HTMLInputElement} */ (e.currentTarget);
+	async function onFile(e: Event) {
+		const input = e.currentTarget as HTMLInputElement;
 		const file = input.files?.[0];
 		if (!file) return;
 		importing = true;

@@ -4,6 +4,8 @@ node_modules
 /build
 /.svelte-kit
 /package
+# von graphql-codegen erzeugt
+src/lib/gql
 .env
 .env.*
 !.env.example
