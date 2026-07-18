@@ -71,6 +71,14 @@ export const load: PageServerLoad = async ({ params }) => {
 						resolved
 						resolveError
 					}
+					assignmentUrls(course: $course, name: $name) {
+						per
+						groupUrl
+						repos {
+							for
+							url
+						}
+					}
 				}
 			`),
 			{ course, name: assignment }
@@ -92,6 +100,7 @@ export const load: PageServerLoad = async ({ params }) => {
 					resolved: '',
 					resolveError: null
 				},
+				urls: null,
 				isNew: true
 			};
 		}
@@ -101,6 +110,7 @@ export const load: PageServerLoad = async ({ params }) => {
 			settingsSchema: d.approvalSettingsSchema ?? [],
 			ruleSchema: d.approvalRuleSchema ?? [],
 			assignment: d.assignment,
+			urls: d.assignmentUrls ?? null,
 			isNew: false
 		};
 	} catch (e) {
