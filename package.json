@@ -49,6 +49,7 @@
 	"dependencies": {
 		"ansi-to-html": "^0.7.2",
 		"dotenv": "^17.4.2",
+		"fflate": "^0.8.3",
 		"graphql": "^16.14.2",
 		"graphql-request": "^7.4.0"
 	},
