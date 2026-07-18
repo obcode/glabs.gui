@@ -348,6 +348,13 @@
 		{/if}
 		<div class="flex-1"></div>
 		{#if !isNew}
+			<a
+				class="btn btn-outline btn-xs"
+				href={`/courses/${encodeURIComponent(a.course)}/${encodeURIComponent(a.name)}/report`}
+				title="Live-Report der Repositories (GitLab-Token nötig)"
+			>
+				📊 Report
+			</a>
 			<button
 				class="btn btn-error btn-outline btn-xs"
 				onclick={() => (confirmDelete = true)}
