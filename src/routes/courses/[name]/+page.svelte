@@ -1,6 +1,7 @@
 <script>
 	import { invalidateAll, goto } from '$app/navigation';
 	import { formatDateTime } from '$lib/format';
+	import RosterEditor from '$lib/RosterEditor.svelte';
 
 	/** @type {{ data: import('./$types').PageData }} */
 	let { data } = $props();
@@ -152,6 +153,11 @@
 				<dd class="font-mono break-all">{course.semesterPath || '—'}</dd>
 			</div>
 		</dl>
+	</section>
+
+	<section class="mt-6">
+		<h2 class="text-sm font-semibold text-base-content/70">Studierende & Gruppen</h2>
+		<RosterEditor {course} />
 	</section>
 
 	<section class="mt-6">
