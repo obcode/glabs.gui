@@ -15,6 +15,7 @@ jobs:
       contents: write # to be able to publish a GitHub release
       issues: write # to be able to comment on released issues
       pull-requests: write # to be able to comment on released pull requests
+      actions: write # to dispatch the Docker workflow after a release
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -29,10 +30,35 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      # The latest release tag before/after semantic-release tells us whether a new
+      # release was actually published (and which tag), without any plugin.
+      - name: Latest release tag (before)
+        id: before
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "tag=$(gh release view --json tagName -q .tagName 2>/dev/null || echo none)" >> "$GITHUB_OUTPUT"
+
       - name: Release
         env:
-          # PAT nötig, damit das durch den Release ausgelöste `release`-Event die
-          # docker.yml-Pipeline triggert (ein mit GITHUB_TOKEN erzeugter Release
-          # löst keine weiteren Workflows aus).
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          # Deliberately GITHUB_TOKEN (not a PAT): the release is then authored by
+          # github-actions[bot], so the repo's watchers (incl. the maintainer) get
+          # the release email — GitHub never notifies you about your own actions.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: pnpm dlx semantic-release --branches main
+
+      - name: Latest release tag (after)
+        id: after
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "tag=$(gh release view --json tagName -q .tagName 2>/dev/null || echo none)" >> "$GITHUB_OUTPUT"
+
+      # A release created with GITHUB_TOKEN does NOT fire the `release` event, so
+      # trigger the Docker build explicitly. workflow_dispatch IS allowed to run
+      # even when invoked with GITHUB_TOKEN (unlike push/release), so no PAT is
+      # needed. Only when a new tag appeared.
+      - name: Trigger Docker build
+        if: steps.after.outputs.tag != steps.before.outputs.tag && steps.after.outputs.tag != 'none'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run docker.yml --ref main -f tag=${{ steps.after.outputs.tag }}
