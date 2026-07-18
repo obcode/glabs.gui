@@ -40,11 +40,22 @@
 		pasteText = '';
 	}
 
+	// CSV/TSV als Text; xlsx wird lazy entpackt und in TSV gewandelt (der Parser
+	// wird nur geladen, wenn wirklich eine xlsx hochgeladen wird).
+	/** @param {File} file */
+	async function fileToText(file) {
+		if (/\.xlsx$/i.test(file.name)) {
+			const { xlsxToTsv } = await import('$lib/xlsx');
+			return xlsxToTsv(await file.arrayBuffer());
+		}
+		return file.text();
+	}
+
 	/** @param {Event} e */
 	async function onStudentsFile(e) {
 		const input = /** @type {HTMLInputElement} */ (e.currentTarget);
 		const file = input.files?.[0];
-		if (file) students = mergeEmails(students, extractEmails(await file.text()));
+		if (file) students = mergeEmails(students, extractEmails(await fileToText(file)));
 		input.value = '';
 	}
 
@@ -52,7 +63,7 @@
 	async function onGroupsFile(e) {
 		const input = /** @type {HTMLInputElement} */ (e.currentTarget);
 		const file = input.files?.[0];
-		if (file) groups = mergeGroups(groups, extractGroups(await file.text()));
+		if (file) groups = mergeGroups(groups, extractGroups(await fileToText(file)));
 		input.value = '';
 	}
 
@@ -164,12 +175,17 @@
 					+ aus Text
 				</button>
 				<label class="btn btn-outline btn-sm">
-					📄 CSV importieren
-					<input type="file" accept=".csv,.txt,.tsv" class="hidden" onchange={onStudentsFile} />
+					📄 CSV/Excel importieren
+					<input
+						type="file"
+						accept=".csv,.txt,.tsv,.xlsx"
+						class="hidden"
+						onchange={onStudentsFile}
+					/>
 				</label>
 			</div>
 			<p class="text-xs text-base-content/50">
-				Additiv: Import/Paste ergänzt die Liste (dedupliziert). CSV nutzt die
+				Additiv: Import/Paste ergänzt die Liste (dedupliziert). CSV/Excel nutzt die
 				<span class="font-mono">E-Mail-Adresse</span>-Spalte.
 			</p>
 		</div>
@@ -224,11 +240,11 @@
 		<div class="mt-3 flex flex-col gap-2">
 			<label class="btn btn-outline btn-sm w-fit">
 				📄 Moodle-Datei importieren
-				<input type="file" accept=".csv,.txt,.tsv" class="hidden" onchange={onGroupsFile} />
+				<input type="file" accept=".csv,.txt,.tsv,.xlsx" class="hidden" onchange={onGroupsFile} />
 			</label>
 			<p class="text-xs text-base-content/50">
 				Additiv: erwartet die Moodle-Spalten <span class="font-mono">Gruppe</span> +
-				<span class="font-mono">E-Mail-Adresse</span> (CSV oder Tab-getrennt).
+				<span class="font-mono">E-Mail-Adresse</span> (CSV, Tab-getrennt oder Excel).
 			</p>
 		</div>
 	</div>
