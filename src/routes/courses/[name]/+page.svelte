@@ -21,6 +21,52 @@
 		goto(`/courses/${encodeURIComponent(course.name)}/${encodeURIComponent(newAssignment.trim())}`);
 	}
 
+	// Assignment aus YAML importieren (Upsert; der Server validiert über den echten
+	// Resolver). Der oberste Schlüssel der YAML ist der Assignment-Name.
+	let importOpen = $state(false);
+	let importText = $state('');
+	let importing = $state(false);
+	let importError = $state('');
+	const importPlaceholder =
+		'blatt3:\n  per: student\n  accesslevel: developer\n  startercode:\n    url: git@gitlab.lrz.de:…\n    fromBranch: main';
+	function openImport() {
+		importText = '';
+		importError = '';
+		importOpen = true;
+	}
+	async function onImportFile(e: Event) {
+		const input = e.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
+		if (file) importText = await file.text();
+		input.value = '';
+	}
+	async function importAssignment() {
+		if (!importText.trim() || importing) return;
+		importing = true;
+		importError = '';
+		try {
+			const res = await fetch('/api/assignment/import', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ course: course.name, yaml: importText })
+			});
+			const d = await res.json().catch(() => ({}));
+			if (!res.ok || d?.error) {
+				importError = d?.error || `Fehler (HTTP ${res.status})`;
+				return;
+			}
+			importOpen = false;
+			await invalidateAll();
+			const name = d?.importAssignmentYAML?.name;
+			if (name)
+				await goto(`/courses/${encodeURIComponent(course.name)}/${encodeURIComponent(name)}`);
+		} catch (e) {
+			importError = e instanceof Error ? e.message : String(e);
+		} finally {
+			importing = false;
+		}
+	}
+
 	// Kurs-Einstellungen bearbeiten.
 	let editOpen = $state(false);
 	let savingCourse = $state(false);
@@ -194,6 +240,9 @@
 			<button type="submit" class="btn btn-primary btn-sm" disabled={!newAssignmentValid}>
 				➕ Neues Assignment
 			</button>
+			<button type="button" class="btn btn-outline btn-sm" onclick={openImport}>
+				⬆️ Assignment aus YAML
+			</button>
 		</form>
 	</section>
 
@@ -284,6 +333,57 @@
 			</form>
 		</div>
 		<button class="modal-backdrop" aria-label="schließen" onclick={() => (editOpen = false)}
+		></button>
+	</div>
+{/if}
+
+{#if importOpen}
+	<div class="modal modal-open">
+		<div class="modal-box">
+			<h2 class="text-lg font-semibold">Assignment aus YAML importieren</h2>
+			<p class="mt-1 text-sm text-base-content/60">
+				Ein einzelner Assignment-Block, wie er in einer Kurs-YAML steht — der oberste Schlüssel ist
+				der Assignment-Name. Ein gleichnamiges Assignment wird ersetzt (Upsert); der Server prüft es
+				über den echten Resolver.
+			</p>
+			<form
+				class="mt-3 flex flex-col gap-2"
+				onsubmit={(e) => {
+					e.preventDefault();
+					importAssignment();
+				}}
+			>
+				<label class="btn btn-outline btn-sm w-fit">
+					📄 YAML-Datei laden
+					<input type="file" accept=".yaml,.yml,text/yaml" class="hidden" onchange={onImportFile} />
+				</label>
+				<textarea
+					class="textarea textarea-bordered textarea-sm font-mono"
+					rows="10"
+					placeholder={importPlaceholder}
+					bind:value={importText}></textarea>
+
+				{#if importError}
+					<div class="alert alert-error">
+						<span class="font-mono text-sm break-words whitespace-pre-wrap">{importError}</span>
+					</div>
+				{/if}
+
+				<div class="modal-action">
+					<button type="button" class="btn btn-ghost btn-sm" onclick={() => (importOpen = false)}>
+						Abbrechen
+					</button>
+					<button
+						type="submit"
+						class="btn btn-primary btn-sm"
+						disabled={!importText.trim() || importing}
+					>
+						{importing ? 'importiert …' : 'Importieren'}
+					</button>
+				</div>
+			</form>
+		</div>
+		<button class="modal-backdrop" aria-label="schließen" onclick={() => (importOpen = false)}
 		></button>
 	</div>
 {/if}

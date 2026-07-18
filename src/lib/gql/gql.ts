@@ -18,6 +18,7 @@ type Documents = {
     "\n\t\t\t\tquery Me {\n\t\t\t\t\tme {\n\t\t\t\t\t\temail\n\t\t\t\t\t\tname\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t": typeof types.MeDocument,
     "\n\t\t\t\tquery ServerInfo {\n\t\t\t\t\tserverInfo {\n\t\t\t\t\t\tversion\n\t\t\t\t\t\tcommit\n\t\t\t\t\t\tdate\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t": typeof types.ServerInfoDocument,
     "\n\t\t\tmutation DeleteAssignment($course: String!, $name: String!) {\n\t\t\t\tdeleteAssignment(course: $course, name: $name)\n\t\t\t}\n\t\t": typeof types.DeleteAssignmentDocument,
+    "\n\t\t\tmutation ImportAssignmentYAML($course: String!, $yaml: String!) {\n\t\t\t\timportAssignmentYAML(course: $course, yaml: $yaml) {\n\t\t\t\t\tname\n\t\t\t\t}\n\t\t\t}\n\t\t": typeof types.ImportAssignmentYamlDocument,
     "\n\t\t\tmutation SetAssignment($course: String!, $name: String!, $draft: [FieldValueInput!]!) {\n\t\t\t\tsetAssignment(course: $course, name: $name, draft: $draft) {\n\t\t\t\t\tcourse\n\t\t\t\t\tname\n\t\t\t\t\textends\n\t\t\t\t\tabstract\n\t\t\t\t\town {\n\t\t\t\t\t\tkey\n\t\t\t\t\t\tvalue\n\t\t\t\t\t}\n\t\t\t\t\tresolved\n\t\t\t\t\tresolveError\n\t\t\t\t}\n\t\t\t}\n\t\t": typeof types.SetAssignmentDocument,
     "\n\t\t\tquery ValidateAssignmentDraft($course: String!, $name: String!, $draft: [FieldValueInput!]!) {\n\t\t\t\tvalidateAssignmentDraft(course: $course, name: $name, draft: $draft) {\n\t\t\t\t\tok\n\t\t\t\t\terrors\n\t\t\t\t\tresolved\n\t\t\t\t\tresolveError\n\t\t\t\t}\n\t\t\t}\n\t\t": typeof types.ValidateAssignmentDraftDocument,
     "\n\t\t\tmutation CreateCourse(\n\t\t\t\t$name: String!\n\t\t\t\t$coursePath: String!\n\t\t\t\t$semesterPath: String!\n\t\t\t\t$useCoursenameAsPrefix: Boolean!\n\t\t\t\t$useEmailDomainAsSuffix: Boolean!\n\t\t\t) {\n\t\t\t\tcreateCourse(\n\t\t\t\t\tname: $name\n\t\t\t\t\tcoursePath: $coursePath\n\t\t\t\t\tsemesterPath: $semesterPath\n\t\t\t\t\tuseCoursenameAsPrefix: $useCoursenameAsPrefix\n\t\t\t\t\tuseEmailDomainAsSuffix: $useEmailDomainAsSuffix\n\t\t\t\t) {\n\t\t\t\t\tname\n\t\t\t\t}\n\t\t\t}\n\t\t": typeof types.CreateCourseDocument,
@@ -41,6 +42,7 @@ const documents: Documents = {
     "\n\t\t\t\tquery Me {\n\t\t\t\t\tme {\n\t\t\t\t\t\temail\n\t\t\t\t\t\tname\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t": types.MeDocument,
     "\n\t\t\t\tquery ServerInfo {\n\t\t\t\t\tserverInfo {\n\t\t\t\t\t\tversion\n\t\t\t\t\t\tcommit\n\t\t\t\t\t\tdate\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t": types.ServerInfoDocument,
     "\n\t\t\tmutation DeleteAssignment($course: String!, $name: String!) {\n\t\t\t\tdeleteAssignment(course: $course, name: $name)\n\t\t\t}\n\t\t": types.DeleteAssignmentDocument,
+    "\n\t\t\tmutation ImportAssignmentYAML($course: String!, $yaml: String!) {\n\t\t\t\timportAssignmentYAML(course: $course, yaml: $yaml) {\n\t\t\t\t\tname\n\t\t\t\t}\n\t\t\t}\n\t\t": types.ImportAssignmentYamlDocument,
     "\n\t\t\tmutation SetAssignment($course: String!, $name: String!, $draft: [FieldValueInput!]!) {\n\t\t\t\tsetAssignment(course: $course, name: $name, draft: $draft) {\n\t\t\t\t\tcourse\n\t\t\t\t\tname\n\t\t\t\t\textends\n\t\t\t\t\tabstract\n\t\t\t\t\town {\n\t\t\t\t\t\tkey\n\t\t\t\t\t\tvalue\n\t\t\t\t\t}\n\t\t\t\t\tresolved\n\t\t\t\t\tresolveError\n\t\t\t\t}\n\t\t\t}\n\t\t": types.SetAssignmentDocument,
     "\n\t\t\tquery ValidateAssignmentDraft($course: String!, $name: String!, $draft: [FieldValueInput!]!) {\n\t\t\t\tvalidateAssignmentDraft(course: $course, name: $name, draft: $draft) {\n\t\t\t\t\tok\n\t\t\t\t\terrors\n\t\t\t\t\tresolved\n\t\t\t\t\tresolveError\n\t\t\t\t}\n\t\t\t}\n\t\t": types.ValidateAssignmentDraftDocument,
     "\n\t\t\tmutation CreateCourse(\n\t\t\t\t$name: String!\n\t\t\t\t$coursePath: String!\n\t\t\t\t$semesterPath: String!\n\t\t\t\t$useCoursenameAsPrefix: Boolean!\n\t\t\t\t$useEmailDomainAsSuffix: Boolean!\n\t\t\t) {\n\t\t\t\tcreateCourse(\n\t\t\t\t\tname: $name\n\t\t\t\t\tcoursePath: $coursePath\n\t\t\t\t\tsemesterPath: $semesterPath\n\t\t\t\t\tuseCoursenameAsPrefix: $useCoursenameAsPrefix\n\t\t\t\t\tuseEmailDomainAsSuffix: $useEmailDomainAsSuffix\n\t\t\t\t) {\n\t\t\t\t\tname\n\t\t\t\t}\n\t\t\t}\n\t\t": types.CreateCourseDocument,
@@ -90,6 +92,10 @@ export function graphql(source: "\n\t\t\t\tquery ServerInfo {\n\t\t\t\t\tserverI
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n\t\t\tmutation DeleteAssignment($course: String!, $name: String!) {\n\t\t\t\tdeleteAssignment(course: $course, name: $name)\n\t\t\t}\n\t\t"): (typeof documents)["\n\t\t\tmutation DeleteAssignment($course: String!, $name: String!) {\n\t\t\t\tdeleteAssignment(course: $course, name: $name)\n\t\t\t}\n\t\t"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n\t\t\tmutation ImportAssignmentYAML($course: String!, $yaml: String!) {\n\t\t\t\timportAssignmentYAML(course: $course, yaml: $yaml) {\n\t\t\t\t\tname\n\t\t\t\t}\n\t\t\t}\n\t\t"): (typeof documents)["\n\t\t\tmutation ImportAssignmentYAML($course: String!, $yaml: String!) {\n\t\t\t\timportAssignmentYAML(course: $course, yaml: $yaml) {\n\t\t\t\t\tname\n\t\t\t\t}\n\t\t\t}\n\t\t"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
