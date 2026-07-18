@@ -1,0 +1,32 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+/*
+  Kuratierte Theme-Auswahl statt `themes: all` — 30+ Themes sind zu viel Fläche
+  (bewusste Abweichung von plexams.gui). Erweiterbar, wenn ein Theme wirklich
+  gebraucht wird. `nord` ist Default (Look wie plexams), `dark` bei
+  prefers-color-scheme: dark.
+*/
+@plugin "daisyui" {
+	themes:
+		nord --default,
+		light,
+		dark --prefersdark,
+		corporate,
+		business;
+}
+
+/*
+  Der Default-Rahmenfarbwert hat sich in Tailwind CSS v4 auf `currentColor`
+  geändert; diese Kompatibilitäts-Styles halten das Erscheinungsbild wie unter
+  v3. Entfernbar, sobald überall explizite Border-Utilities gesetzt sind.
+*/
+@layer base {
+	*,
+	::after,
+	::before,
+	::backdrop,
+	::file-selector-button {
+		border-color: var(--color-gray-200, currentColor);
+	}
+}

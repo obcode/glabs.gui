@@ -1,0 +1,10 @@
+.DS_Store
+node_modules
+# projekt-lokaler pnpm-Store (entsteht, wenn Store und Projekt auf verschiedenen Mounts liegen)
+.pnpm-store
+/build
+/.svelte-kit
+/package
+.env
+.env.*
+!.env.example

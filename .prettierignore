@@ -1,0 +1,15 @@
+.DS_Store
+node_modules
+.pnpm-store
+/build
+/.svelte-kit
+/package
+.env
+.env.*
+!.env.example
+.claude
+
+# Ignore lockfiles
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
