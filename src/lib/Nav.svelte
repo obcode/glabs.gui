@@ -59,6 +59,14 @@
 			>
 				Kurse
 			</a>
+			<a
+				href="/token"
+				class="btn btn-ghost btn-sm rounded-full font-medium {page.url.pathname.startsWith('/token')
+					? 'bg-primary/10 text-primary'
+					: 'text-base-content/70'}"
+			>
+				GitLab-Token
+			</a>
 		</nav>
 
 		<div class="flex-1"></div>
