@@ -76,8 +76,8 @@ importers:
         specifier: ^4.1.11
         version: 4.3.3
       theme-change:
-        specifier: ^2.5.0
-        version: 2.5.2
+        specifier: ^3.0.4
+        version: 3.0.4
       tslib:
         specifier: ^2.8.1
         version: 2.8.1
@@ -1497,8 +1497,8 @@ packages:
     resolution: {integrity: sha512-uxc/zpqFg6x7C8vOE7lh6Lbda8eEL9zmVm/PLeTPBRhh1xCgdWaQ+J1CUieGpIfm2HdtsUpRv+HshiasBMcc6A==}
     engines: {node: '>=6'}
 
-  theme-change@2.5.2:
-    resolution: {integrity: sha512-UOLweDXAKIKDio6XVElNSlhDCRM8XtOk3rih/NImOldhiOkjZqrAmmEBjiWBVipfXt0WOETVNY7ym4W+UwjcxQ==}
+  theme-change@3.0.4:
+    resolution: {integrity: sha512-tPknw142u0yX7M63rXOU1gc2N3cw61iLUtuvh5OKxXTA4/B5SOXxOeS+JT8Ig14SCjs5T2rY41aLFDeTRclV5w==}
 
   tinybench@2.9.0:
     resolution: {integrity: sha512-0+DUvqWMValLmha6lr4kD8iAMK1HzV0/aKnCtWb9v9641TnP/MFb7Pc2bxoxQjTXAErryXVgUOfv2YqNllqGeg==}
@@ -2917,7 +2917,7 @@ snapshots:
 
   tapable@2.3.3: {}
 
-  theme-change@2.5.2: {}
+  theme-change@3.0.4: {}
 
   tinybench@2.9.0: {}
 
