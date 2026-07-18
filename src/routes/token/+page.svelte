@@ -1,9 +1,15 @@
 <script>
 	import { invalidateAll } from '$app/navigation';
+	import { env } from '$env/dynamic/public';
 	import { formatDateTime } from '$lib/format';
 
 	/** @type {{ data: import('./$types').PageData }} */
 	let { data } = $props();
+
+	// GitLab-Host für die Anleitung/Links. Über PUBLIC_GITLAB_HOST konfigurierbar,
+	// Default ist die vom LRZ gehostete Instanz.
+	const gitlabHost = (env.PUBLIC_GITLAB_HOST || 'https://gitlab.lrz.de').replace(/\/+$/, '');
+	const tokensUrl = `${gitlabHost}/-/user_settings/personal_access_tokens`;
 
 	let status = $derived(data.status ?? { set: false, updatedAt: null });
 
@@ -92,6 +98,37 @@
 	{/if}
 
 	<section class="mt-6">
+		<h2 class="text-sm font-semibold text-base-content/70">So erstellst du einen Access Token</h2>
+		<ol class="mt-2 list-decimal space-y-2 pl-5 text-sm text-base-content/80">
+			<li>
+				Öffne in GitLab die
+				<a class="link link-primary" href={tokensUrl} target="_blank" rel="noopener">
+					Access-Token-Einstellungen
+				</a>
+				(oben rechts aufs Profilbild → <span class="font-medium">Edit profile / Preferences</span> →
+				linke Leiste <span class="font-medium">Access tokens</span>).
+			</li>
+			<li>
+				<span class="font-medium">Add new token</span>: Name z. B. <code>glabs</code>.
+			</li>
+			<li>
+				<span class="font-medium">Expiration</span>: ein Ablaufdatum ist Pflicht. Wähle es großzügig
+				(z. B. bis zum Semesterende oder länger).
+			</li>
+			<li>
+				<span class="font-medium">Scopes</span>: <code>api</code> und
+				<code>write_repository</code> ankreuzen.
+			</li>
+			<li>
+				<span class="font-medium">Create personal access token</span> → der Token (<code
+					>glpat-…</code
+				>) wird <span class="font-medium">nur einmal</span> angezeigt. Kopiere ihn und füge ihn unten
+				ein.
+			</li>
+		</ol>
+	</section>
+
+	<section class="mt-6">
 		<h2 class="text-sm font-semibold text-base-content/70">
 			{status.set ? 'Token ersetzen' : 'Token hinterlegen'}
 		</h2>
@@ -114,8 +151,8 @@
 			</button>
 		</form>
 		<p class="mt-2 text-xs text-base-content/50">
-			Benötigte Scopes: <code>api</code> und <code>write_repository</code>. Erstellen unter
-			<span class="font-mono">GitLab → Preferences → Access Tokens</span>.
+			Der Token wird verschlüsselt gespeichert und nie wieder angezeigt. Benötigte Scopes:
+			<code>api</code> und <code>write_repository</code>.
 		</p>
 	</section>
 
