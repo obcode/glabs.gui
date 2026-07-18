@@ -49,6 +49,17 @@
 	let savingGroups = $state(false);
 	let error = $state('');
 
+	// Gruppe manuell anlegen (gleicher Name ergänzt eine bestehende Gruppe).
+	let newGroupName = $state('');
+	let newGroupMembers = $state('');
+	function addGroup() {
+		const name = newGroupName.trim();
+		if (!name) return;
+		groups = mergeGroups(groups, [{ name, members: extractEmails(newGroupMembers) }]);
+		newGroupName = '';
+		newGroupMembers = '';
+	}
+
 	function addPasted() {
 		students = mergeEmails(students, extractEmails(pasteText));
 		pasteText = '';
@@ -252,6 +263,33 @@
 		{:else}
 			<p class="mt-2 text-sm text-base-content/50">Noch keine Gruppen.</p>
 		{/if}
+
+		<form
+			class="mt-3 flex flex-col gap-2 border-t border-base-200 pt-3"
+			onsubmit={(e) => {
+				e.preventDefault();
+				addGroup();
+			}}
+		>
+			<span class="text-xs font-medium text-base-content/60">Gruppe manuell anlegen</span>
+			<input
+				type="text"
+				class="input input-bordered input-sm"
+				placeholder="Gruppenname, z. B. Gruppe 42"
+				bind:value={newGroupName}
+			/>
+			<textarea
+				class="textarea textarea-bordered textarea-sm font-mono"
+				rows="2"
+				placeholder="Mitglieder — eine E-Mail pro Zeile (optional)"
+				bind:value={newGroupMembers}></textarea>
+			<button type="submit" class="btn btn-outline btn-sm w-fit" disabled={!newGroupName.trim()}>
+				+ Gruppe hinzufügen
+			</button>
+			<p class="text-xs text-base-content/50">
+				Gleicher Gruppenname ergänzt eine bestehende Gruppe (additiv, dedupliziert).
+			</p>
+		</form>
 
 		<div class="mt-3 flex flex-col gap-2">
 			<label class="btn btn-outline btn-sm w-fit">
