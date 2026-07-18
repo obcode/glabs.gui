@@ -49,6 +49,9 @@
 	let ruleSchema = $derived(data.ruleSchema ?? []);
 	// „Neu"-Modus: das Assignment existiert noch nicht, Speichern legt es an.
 	let isNew = $derived(data.isNew ?? false);
+	// Repository-URLs (aus der aufgelösten Config; null bei neu/abstrakt/nicht
+	// auflösbar). Spiegelt den gespeicherten Stand, nicht den ungespeicherten Entwurf.
+	let urls = $derived(data.urls ?? null);
 
 	// Felder nach ihrer Sektion (`group`) bündeln, Reihenfolge wie im Schema.
 	// Leere Gruppe ("") ist der Top-Level-Abschnitt ohne Überschrift.
@@ -616,6 +619,50 @@
 			{/if}
 		</section>
 	</div>
+
+	{#if urls}
+		<section class="mt-8">
+			<h2 class="text-sm font-semibold text-base-content/70">
+				Repository-URLs ({urls.repos.length}
+				{urls.per === 'group' ? 'Gruppen' : 'Studierende'})
+			</h2>
+			<p class="mt-1 text-xs text-base-content/50">
+				Aus der aufgelösten Konfiguration abgeleitet (kein GitLab-Zugriff) — spiegelt den
+				<span class="font-medium">gespeicherten</span> Stand.
+			</p>
+
+			<div class="mt-2 flex items-center gap-2 text-sm">
+				<span class="shrink-0 text-base-content/50">Gruppe</span>
+				<a
+					class="link link-primary font-mono break-all"
+					href={urls.groupUrl}
+					target="_blank"
+					rel="noopener">{urls.groupUrl}</a
+				>
+			</div>
+
+			{#if urls.repos.length > 0}
+				<ul class="mt-3 flex flex-col divide-y divide-base-200 text-sm">
+					{#each urls.repos as r (r.url)}
+						<li class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 py-1">
+							<span class="font-mono break-all text-base-content/70">{r.for}</span>
+							<a
+								class="link link-hover font-mono break-all text-primary"
+								href={r.url}
+								target="_blank"
+								rel="noopener">{r.url}</a
+							>
+						</li>
+					{/each}
+				</ul>
+			{:else}
+				<p class="mt-2 text-sm text-base-content/50">
+					Noch keine {urls.per === 'group' ? 'Gruppen' : 'Studierenden'} im Kurs — lege sie im Kurs unter
+					„Studierende &amp; Gruppen" an.
+				</p>
+			{/if}
+		</section>
+	{/if}
 </main>
 
 {#if confirmDelete}

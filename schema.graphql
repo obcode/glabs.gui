@@ -8,31 +8,31 @@ from this server-authoritative metadata, so labels, help text and dropdown
 options live in exactly one place.
 """
 type FieldMeta {
-	"Config key, e.g. `per` or `accesslevel`."
-	key: String!
-	"Human-readable label for the form."
-	label: String!
-	"Short help text describing what the field does."
-	description: String!
-	"Section this field belongs to (empty for the top-level group), e.g. `startercode`. Lets the GUI render grouped sections."
-	group: String!
-	"The input shape the GUI should render."
-	kind: FieldKind!
-	"Whether the field must be set for a concrete (non-abstract) assignment."
-	required: Boolean!
-	"Whether the field is deprecated (shown but discouraged)."
-	deprecated: Boolean!
-	"An example value for the input placeholder, if any."
-	example: String
-	"Dropdown options for an ENUM field (empty otherwise)."
-	options: [FieldOption!]!
+  "Config key, e.g. `per` or `accesslevel`."
+  key: String!
+  "Human-readable label for the form."
+  label: String!
+  "Short help text describing what the field does."
+  description: String!
+  "Section this field belongs to (empty for the top-level group), e.g. `startercode`. Lets the GUI render grouped sections."
+  group: String!
+  "The input shape the GUI should render."
+  kind: FieldKind!
+  "Whether the field must be set for a concrete (non-abstract) assignment."
+  required: Boolean!
+  "Whether the field is deprecated (shown but discouraged)."
+  deprecated: Boolean!
+  "An example value for the input placeholder, if any."
+  example: String
+  "Dropdown options for an ENUM field (empty otherwise)."
+  options: [FieldOption!]!
 }
 
 "One choice of an ENUM field — a dropdown entry with its own short description."
 type FieldOption {
-	value: String!
-	label: String!
-	description: String!
+  value: String!
+  label: String!
+  description: String!
 }
 
 """
@@ -41,17 +41,17 @@ inheritance. Values are stringified (booleans as `true`/`false`) and keyed by th
 same `key` as FieldMeta, so the GUI can pre-fill each schema field generically.
 """
 type FieldValue {
-	key: String!
-	value: String!
+  key: String!
+  value: String!
 }
 
 "The input shape the GUI should render for a field."
 enum FieldKind {
-	STRING
-	BOOL
-	ENUM
-	INT
-	STRINGLIST
+  STRING
+  BOOL
+  ENUM
+  INT
+  STRINGLIST
 }
 
 """
@@ -59,24 +59,24 @@ One assignment in source (own) form plus its resolved preview — the same
 rendering `glabs show` produces, so inheritance is visible.
 """
 type AssignmentView {
-	course: String!
-	name: String!
-	"The assignment this one inherits from, if any (`extends`)."
-	extends: String
-	"Whether this is an abstract base (a template for `extends`)."
-	abstract: Boolean!
-	"The assignment's own (source) field values, keyed by FieldMeta.key, for pre-filling the editor form."
-	own: [FieldValue!]!
-	"The resolved config rendered as text (may contain ANSI); empty when resolveError is set."
-	resolved: String!
-	"Why the assignment could not be resolved (e.g. abstract base, missing parent) — not an error."
-	resolveError: String
+  course: String!
+  name: String!
+  "The assignment this one inherits from, if any (`extends`)."
+  extends: String
+  "Whether this is an abstract base (a template for `extends`)."
+  abstract: Boolean!
+  "The assignment's own (source) field values, keyed by FieldMeta.key, for pre-filling the editor form."
+  own: [FieldValue!]!
+  "The resolved config rendered as text (may contain ANSI); empty when resolveError is set."
+  resolved: String!
+  "Why the assignment could not be resolved (e.g. abstract base, missing parent) — not an error."
+  resolveError: String
 }
 
 "One field's drafted value, keyed by FieldMeta.key. Booleans as `true`/`false`; empty string unsets the field (so it inherits)."
 input FieldValueInput {
-	key: String!
-	value: String!
+  key: String!
+  value: String!
 }
 
 """
@@ -84,40 +84,60 @@ Result of validating a draft assignment against the real resolver (the same one
 the CLI uses), without saving.
 """
 type ValidationResult {
-	"Whether the draft is structurally sound and could be saved."
-	ok: Boolean!
-	"Hard errors that make the draft unsaveable (empty when ok)."
-	errors: [String!]!
-	"The resolved config preview (Show() output, may contain ANSI) when the draft resolves."
-	resolved: String
-	"Why there is no preview though the draft is ok — e.g. an abstract base."
-	resolveError: String
+  "Whether the draft is structurally sound and could be saved."
+  ok: Boolean!
+  "Hard errors that make the draft unsaveable (empty when ok)."
+  errors: [String!]!
+  "The resolved config preview (Show() output, may contain ANSI) when the draft resolves."
+  resolved: String
+  "Why there is no preview though the draft is ok — e.g. an abstract base."
+  resolveError: String
 }
 
 extend type Query {
-	"Field metadata for the assignment editor (server-authoritative labels, descriptions, dropdown options)."
-	assignmentSchema: [FieldMeta!]!
-	"Field metadata for one branch rule — a row of the repeat-group `branches` list."
-	branchRuleSchema: [FieldMeta!]!
-	"Field metadata for the mergeRequest approval settings (tri-state; empty ENUM option means unset)."
-	approvalSettingsSchema: [FieldMeta!]!
-	"Field metadata for one approval rule — a row of the repeat-group `approvals.rules` list."
-	approvalRuleSchema: [FieldMeta!]!
-	"One assignment of one of the caller's courses: source values, resolved preview. Null when there is no such assignment."
-	assignment(course: String!, name: String!): AssignmentView
-	"Validate a draft assignment against the real resolver without saving."
-	validateAssignmentDraft(
-		course: String!
-		name: String!
-		draft: [FieldValueInput!]!
-	): ValidationResult!
+  "Field metadata for the assignment editor (server-authoritative labels, descriptions, dropdown options)."
+  assignmentSchema: [FieldMeta!]!
+  "Field metadata for one branch rule — a row of the repeat-group `branches` list."
+  branchRuleSchema: [FieldMeta!]!
+  "Field metadata for the mergeRequest approval settings (tri-state; empty ENUM option means unset)."
+  approvalSettingsSchema: [FieldMeta!]!
+  "Field metadata for one approval rule — a row of the repeat-group `approvals.rules` list."
+  approvalRuleSchema: [FieldMeta!]!
+  "One assignment of one of the caller's courses: source values, resolved preview. Null when there is no such assignment."
+  assignment(course: String!, name: String!): AssignmentView
+  "Validate a draft assignment against the real resolver without saving."
+  validateAssignmentDraft(course: String!, name: String!, draft: [FieldValueInput!]!): ValidationResult!
+  "The repository URLs for one assignment, derived from the resolved config (no GitLab token needed). Null when there is no such assignment or it cannot be resolved (e.g. an abstract base)."
+  assignmentUrls(course: String!, name: String!): AssignmentUrls
+}
+
+"""
+The repository URLs for one assignment: the assignment-level group URL plus one
+URL per student or per group. Read-only and derived purely from the resolved
+configuration — no GitLab token or API call is involved.
+"""
+type AssignmentUrls {
+  "Whether repos are per student or per group (`student` or `group`)."
+  per: String!
+  "The assignment-level group URL, where all the repos live."
+  groupUrl: String!
+  "One entry per student/group repository."
+  repos: [RepoUrl!]!
+}
+
+"One repository URL together with who it belongs to."
+type RepoUrl {
+  "The student's email (or username/id fallback) or the group's name."
+  for: String!
+  "The full web URL of the repository."
+  url: String!
 }
 
 extend type Mutation {
-	"Apply a draft to one of the caller's assignments, creating it if it does not exist: validate, then persist (re-marshals the course YAML). Rejects a concrete draft that does not resolve."
-	setAssignment(course: String!, name: String!, draft: [FieldValueInput!]!): AssignmentView!
-	"Delete one assignment from one of the caller's courses. Returns false if there was no such assignment."
-	deleteAssignment(course: String!, name: String!): Boolean!
+  "Apply a draft to one of the caller's assignments, creating it if it does not exist: validate, then persist (re-marshals the course YAML). Rejects a concrete draft that does not resolve."
+  setAssignment(course: String!, name: String!, draft: [FieldValueInput!]!): AssignmentView!
+  "Delete one assignment from one of the caller's courses. Returns false if there was no such assignment."
+  deleteAssignment(course: String!, name: String!): Boolean!
 }
 
 # ----- courses.graphqls -----
@@ -126,94 +146,92 @@ A course as stored for the current user. Each user sees only their own courses;
 there is no way to reach another user's course.
 """
 type Course {
-	name: String!
-	coursePath: String!
-	semesterPath: String!
-	"Whether the course name is prepended to each project path."
-	useCoursenameAsPrefix: Boolean!
-	"Whether the student's email domain is appended as a suffix (default true)."
-	useEmailDomainAsSuffix: Boolean!
-	"The names of the assignments in this course, sorted."
-	assignmentNames: [String!]!
-	"The course-level students (emails), as stored."
-	students: [String!]!
-	"The course-level groups, sorted by name."
-	groups: [Group!]!
-	studentCount: Int!
-	groupCount: Int!
-	importedAt: Time!
-	updatedAt: Time!
+  name: String!
+  coursePath: String!
+  semesterPath: String!
+  "Whether the course name is prepended to each project path."
+  useCoursenameAsPrefix: Boolean!
+  "Whether the student's email domain is appended as a suffix (default true)."
+  useEmailDomainAsSuffix: Boolean!
+  "The names of the assignments in this course, sorted."
+  assignmentNames: [String!]!
+  "The course-level students (emails), as stored."
+  students: [String!]!
+  "The course-level groups, sorted by name."
+  groups: [Group!]!
+  studentCount: Int!
+  groupCount: Int!
+  importedAt: Time!
+  updatedAt: Time!
 }
 
 "A named group of members (emails)."
 type Group {
-	name: String!
-	members: [String!]!
+  name: String!
+  members: [String!]!
 }
 
 "A named group of members (emails), for setCourseGroups."
 input GroupInput {
-	name: String!
-	members: [String!]!
+  name: String!
+  members: [String!]!
 }
 
-"""
-One lint finding: configuration that does not do what it looks like it does.
-"""
+"""One lint finding: configuration that does not do what it looks like it does."""
 type Finding {
-	path: String!
-	message: String!
-	severity: FindingSeverity!
+  path: String!
+  message: String!
+  severity: FindingSeverity!
 }
 
 enum FindingSeverity {
-	"The setting is present but has no effect."
-	PROBLEM
-	"It works, but the spelling or shape is obsolete."
-	DEPRECATED
+  "The setting is present but has no effect."
+  PROBLEM
+  "It works, but the spelling or shape is obsolete."
+  DEPRECATED
 }
 
 scalar Time
 
 extend type Query {
-	"The current user's courses."
-	courses: [Course!]!
-	"One of the current user's courses, or null if there is none by that name."
-	course(name: String!): Course
-	"The course as a downloadable YAML file (the original upload if unedited)."
-	courseYAML(name: String!): String!
-	"Lint findings for one of the current user's courses."
-	courseLint(name: String!): [Finding!]!
+  "The current user's courses."
+  courses: [Course!]!
+  "One of the current user's courses, or null if there is none by that name."
+  course(name: String!): Course
+  "The course as a downloadable YAML file (the original upload if unedited)."
+  courseYAML(name: String!): String!
+  "Lint findings for one of the current user's courses."
+  courseLint(name: String!): [Finding!]!
 }
 
 type Mutation {
-	"Import a course from an uploaded YAML file, replacing any course of the same name."
-	importCourseYAML(yaml: String!): Course!
-	"""
-	Create a new, empty course from scratch. Fails if the caller already has a
-	course by that name (use setAssignment to add assignments afterwards).
-	"""
-	createCourse(
-		name: String!
-		coursePath: String!
-		semesterPath: String!
-		useCoursenameAsPrefix: Boolean!
-		useEmailDomainAsSuffix: Boolean!
-	): Course!
-	"Update the course-level settings of one of the caller's courses (assignments, students and groups are untouched)."
-	setCourse(
-		name: String!
-		coursePath: String!
-		semesterPath: String!
-		useCoursenameAsPrefix: Boolean!
-		useEmailDomainAsSuffix: Boolean!
-	): Course!
-	"Replace the course-level students (emails) of one of the caller's courses. The GUI merges additively before calling this."
-	setCourseStudents(name: String!, students: [String!]!): Course!
-	"Replace the course-level groups of one of the caller's courses. The GUI merges additively before calling this."
-	setCourseGroups(name: String!, groups: [GroupInput!]!): Course!
-	"Delete one of the current user's courses."
-	deleteCourse(name: String!): Boolean!
+  "Import a course from an uploaded YAML file, replacing any course of the same name."
+  importCourseYAML(yaml: String!): Course!
+  """
+  Create a new, empty course from scratch. Fails if the caller already has a
+  course by that name (use setAssignment to add assignments afterwards).
+  """
+  createCourse(
+    name: String!
+    coursePath: String!
+    semesterPath: String!
+    useCoursenameAsPrefix: Boolean!
+    useEmailDomainAsSuffix: Boolean!
+  ): Course!
+  "Update the course-level settings of one of the caller's courses (assignments, students and groups are untouched)."
+  setCourse(
+    name: String!
+    coursePath: String!
+    semesterPath: String!
+    useCoursenameAsPrefix: Boolean!
+    useEmailDomainAsSuffix: Boolean!
+  ): Course!
+  "Replace the course-level students (emails) of one of the caller's courses. The GUI merges additively before calling this."
+  setCourseStudents(name: String!, students: [String!]!): Course!
+  "Replace the course-level groups of one of the caller's courses. The GUI merges additively before calling this."
+  setCourseGroups(name: String!, groups: [GroupInput!]!): Course!
+  "Delete one of the current user's courses."
+  deleteCourse(name: String!): Boolean!
 }
 
 # ----- gitlab_token.graphqls -----
@@ -222,24 +240,24 @@ Whether the current user has stored a GitLab token, and when it was last set.
 The token itself is never returned by any query.
 """
 type GitLabTokenStatus {
-	set: Boolean!
-	updatedAt: Time
+  set: Boolean!
+  updatedAt: Time
 }
 
 extend type Query {
-	"Whether the current user has a stored GitLab token."
-	gitlabToken: GitLabTokenStatus!
+  "Whether the current user has a stored GitLab token."
+  gitlabToken: GitLabTokenStatus!
 }
 
 extend type Mutation {
-	"""
-	Store the current user's GitLab personal access token, AES-256-GCM encrypted in
-	the database. Write-only: the token is never returned. Needs the api and
-	write_repository scopes, and secrets.key configured on the server.
-	"""
-	setGitlabToken(token: String!): GitLabTokenStatus!
-	"Remove the current user's stored GitLab token."
-	removeGitlabToken: GitLabTokenStatus!
+  """
+  Store the current user's GitLab personal access token, AES-256-GCM encrypted in
+  the database. Write-only: the token is never returned. Needs the api and
+  write_repository scopes, and secrets.key configured on the server.
+  """
+  setGitlabToken(token: String!): GitLabTokenStatus!
+  "Remove the current user's stored GitLab token."
+  removeGitlabToken: GitLabTokenStatus!
 }
 
 # ----- schema.graphqls -----
@@ -248,22 +266,20 @@ An authenticated user of glabs-web. Identity comes from the auth proxy; there
 are no roles — each user manages only their own courses.
 """
 type User {
-	email: String!
-	name: String!
+  email: String!
+  name: String!
 }
 
-"""
-Version and build metadata for the running server.
-"""
+"""Version and build metadata for the running server."""
 type ServerInfo {
-	version: String!
-	commit: String!
-	date: String!
+  version: String!
+  commit: String!
+  date: String!
 }
 
 type Query {
-	"The currently authenticated user."
-	me: User!
-	"Version and build metadata."
-	serverInfo: ServerInfo!
+  "The currently authenticated user."
+  me: User!
+  "Version and build metadata."
+  serverInfo: ServerInfo!
 }
