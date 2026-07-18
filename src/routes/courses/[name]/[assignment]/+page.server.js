@@ -20,6 +20,7 @@ export const load = async ({ params }) => {
 						key
 						label
 						description
+						group
 						kind
 						required
 						deprecated
