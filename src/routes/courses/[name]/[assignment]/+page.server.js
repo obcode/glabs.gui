@@ -47,10 +47,24 @@ export const load = async ({ params }) => {
 			`,
 			{ course, name: assignment }
 		);
+		// Kein Assignment dieses Namens → „neu"-Modus: ein leeres Assignment
+		// synthetisieren, der Editor legt es beim Speichern (Upsert) an.
 		if (!d?.assignment) {
-			throw error(404, `Assignment „${assignment}" in Kurs „${course}" nicht gefunden`);
+			return {
+				schema: d?.assignmentSchema ?? [],
+				assignment: {
+					course,
+					name: assignment,
+					extends: null,
+					abstract: false,
+					own: [],
+					resolved: '',
+					resolveError: null
+				},
+				isNew: true
+			};
 		}
-		return { schema: d.assignmentSchema ?? [], assignment: d.assignment };
+		return { schema: d.assignmentSchema ?? [], assignment: d.assignment, isNew: false };
 	} catch (e) {
 		// A thrown SvelteKit error (404) has a `status`; re-throw it untouched.
 		if (e && typeof e === 'object' && 'status' in e) throw e;

@@ -1,13 +1,15 @@
 <script>
 	import Convert from 'ansi-to-html';
 	import { untrack } from 'svelte';
-	import { invalidateAll } from '$app/navigation';
+	import { invalidateAll, goto } from '$app/navigation';
 
 	/** @type {{ data: import('./$types').PageData }} */
 	let { data } = $props();
 
 	let a = $derived(data.assignment);
 	let schema = $derived(data.schema ?? []);
+	// „Neu"-Modus: das Assignment existiert noch nicht, Speichern legt es an.
+	let isNew = $derived(data.isNew ?? false);
 
 	// Felder nach ihrer Sektion (`group`) bündeln, Reihenfolge wie im Schema.
 	// Leere Gruppe ("") ist der Top-Level-Abschnitt ohne Überschrift.
@@ -140,6 +142,32 @@
 		}
 	}
 
+	let confirmDelete = $state(false);
+	let deleting = $state(false);
+
+	async function doDelete() {
+		deleting = true;
+		saveError = '';
+		try {
+			const res = await fetch('/api/assignment/delete', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ course: a.course, name: a.name })
+			});
+			const d = await res.json().catch(() => ({}));
+			if (!res.ok || d?.error) {
+				saveError = d?.error || `Fehler (HTTP ${res.status})`;
+				return;
+			}
+			await goto(`/courses/${encodeURIComponent(a.course)}`);
+		} catch (e) {
+			saveError = e instanceof Error ? e.message : String(e);
+		} finally {
+			deleting = false;
+			confirmDelete = false;
+		}
+	}
+
 	// Client-seitige Pflichtprüfung (nur Vorab-Hinweis; verbindlich prüft der Server).
 	let clientErrors = $derived.by(() => {
 		/** @type {Record<string, string>} */
@@ -183,13 +211,35 @@
 
 	<div class="mt-2 flex flex-wrap items-center gap-2">
 		<h1 class="text-2xl font-bold">{a.name}</h1>
+		{#if isNew}
+			<span class="badge badge-info" title="wird beim Speichern angelegt">neu</span>
+		{/if}
 		{#if a.extends}
 			<span class="badge badge-ghost gap-1" title="erbt von {a.extends}">erbt von {a.extends}</span>
 		{/if}
 		{#if form.abstract}
 			<span class="badge badge-warning" title="abstrakte Basis">abstrakt</span>
 		{/if}
+		<div class="flex-1"></div>
+		{#if !isNew}
+			<button
+				class="btn btn-error btn-outline btn-xs"
+				onclick={() => (confirmDelete = true)}
+				title="Assignment löschen"
+			>
+				🗑️ Löschen
+			</button>
+		{/if}
 	</div>
+
+	{#if isNew}
+		<div class="mt-3 alert alert-info">
+			<span class="text-sm">
+				Neues Assignment <span class="font-mono font-semibold">{a.name}</span> — fülle die Felder
+				aus. <span class="font-medium">Anlegen</span> speichert es, sobald es valide ist.
+			</span>
+		</div>
+	{/if}
 
 	<div class="mt-4 grid gap-6 lg:grid-cols-2">
 		<!-- Schema-getriebenes Formular -->
@@ -287,14 +337,18 @@
 
 			<div class="mt-5 flex items-center gap-3">
 				<button class="btn btn-primary btn-sm" disabled={!canSave} onclick={save}>
-					{saving ? 'speichert …' : 'Speichern'}
+					{#if saving}
+						{isNew ? 'legt an …' : 'speichert …'}
+					{:else}
+						{isNew ? 'Anlegen' : 'Speichern'}
+					{/if}
 				</button>
 				{#if validating}
 					<span class="flex items-center gap-1 text-xs text-base-content/50">
 						<span class="loading loading-spinner loading-xs"></span> prüft …
 					</span>
 				{:else if saveOk && !dirty}
-					<span class="text-xs text-success">✓ gespeichert</span>
+					<span class="text-xs text-success">✓ {isNew ? 'angelegt' : 'gespeichert'}</span>
 				{:else if dirty}
 					<span class="text-xs text-base-content/50">ungespeicherte Änderungen</span>
 				{/if}
@@ -321,3 +375,25 @@
 		</section>
 	</div>
 </main>
+
+{#if confirmDelete}
+	<div class="modal modal-open">
+		<div class="modal-box">
+			<h2 class="text-lg font-semibold">Assignment löschen?</h2>
+			<p class="mt-2 text-sm">
+				Das Assignment <span class="font-mono font-semibold">{a.name}</span> wird aus dem Kurs entfernt.
+				Der YAML-Download spiegelt das danach.
+			</p>
+			<div class="modal-action">
+				<button class="btn btn-ghost btn-sm" onclick={() => (confirmDelete = false)}
+					>Abbrechen</button
+				>
+				<button class="btn btn-error btn-sm" disabled={deleting} onclick={doDelete}>
+					{deleting ? 'löscht …' : 'Endgültig löschen'}
+				</button>
+			</div>
+		</div>
+		<button class="modal-backdrop" aria-label="schließen" onclick={() => (confirmDelete = false)}
+		></button>
+	</div>
+{/if}

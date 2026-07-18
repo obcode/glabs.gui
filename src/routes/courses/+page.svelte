@@ -12,6 +12,56 @@
 	/** @type {HTMLInputElement | undefined} */
 	let fileInput;
 
+	// Neuen Kurs from scratch anlegen.
+	let newOpen = $state(false);
+	let creating = $state(false);
+	let createError = $state('');
+	let nc = $state({
+		name: '',
+		coursePath: '',
+		semesterPath: '',
+		useCoursenameAsPrefix: true,
+		useEmailDomainAsSuffix: false
+	});
+	let ncNameValid = $derived(/^[A-Za-z0-9._-]+$/.test(nc.name.trim()));
+
+	function openNew() {
+		nc = {
+			name: '',
+			coursePath: '',
+			semesterPath: '',
+			useCoursenameAsPrefix: true,
+			useEmailDomainAsSuffix: false
+		};
+		createError = '';
+		newOpen = true;
+	}
+
+	async function createCourse() {
+		if (!ncNameValid || creating) return;
+		creating = true;
+		createError = '';
+		try {
+			const res = await fetch('/api/courses/create', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ ...nc, name: nc.name.trim() })
+			});
+			const d = await res.json().catch(() => ({}));
+			if (!res.ok || d?.error) {
+				createError = d?.error || `Fehler (HTTP ${res.status})`;
+				return;
+			}
+			newOpen = false;
+			await invalidateAll();
+			await goto(`/courses/${encodeURIComponent(nc.name.trim())}`);
+		} catch (e) {
+			createError = e instanceof Error ? e.message : String(e);
+		} finally {
+			creating = false;
+		}
+	}
+
 	/** @param {Event} e */
 	async function onFile(e) {
 		const input = /** @type {HTMLInputElement} */ (e.currentTarget);
@@ -54,17 +104,20 @@
 			</p>
 		</div>
 		<div class="flex flex-col items-end gap-1">
-			<button
-				class="btn btn-primary btn-sm"
-				disabled={importing}
-				onclick={() => fileInput?.click()}
-			>
-				{#if importing}
-					<span class="loading loading-spinner loading-xs"></span> importiert …
-				{:else}
-					⬆️ YAML importieren
-				{/if}
-			</button>
+			<div class="flex gap-2">
+				<button class="btn btn-primary btn-sm" onclick={openNew}>➕ Neuer Kurs</button>
+				<button
+					class="btn btn-outline btn-sm"
+					disabled={importing}
+					onclick={() => fileInput?.click()}
+				>
+					{#if importing}
+						<span class="loading loading-spinner loading-xs"></span> importiert …
+					{:else}
+						⬆️ YAML importieren
+					{/if}
+				</button>
+			</div>
 			<input
 				bind:this={fileInput}
 				type="file"
@@ -73,7 +126,7 @@
 				onchange={onFile}
 			/>
 			<span class="text-xs text-base-content/50"
-				>Ein vorhandener Kurs gleichen Namens wird ersetzt.</span
+				>Neu anlegen oder eine YAML importieren (ersetzt einen gleichnamigen Kurs).</span
 			>
 		</div>
 	</div>
@@ -127,3 +180,83 @@
 		</div>
 	{/if}
 </main>
+
+{#if newOpen}
+	<div class="modal modal-open">
+		<div class="modal-box">
+			<h2 class="text-lg font-semibold">Neuen Kurs anlegen</h2>
+			<p class="mt-1 text-sm text-base-content/60">
+				Legt einen leeren Kurs an. Assignments fügst du danach im Kurs hinzu.
+			</p>
+			<form
+				class="mt-3 flex flex-col gap-3"
+				onsubmit={(e) => {
+					e.preventDefault();
+					createCourse();
+				}}
+			>
+				<label class="flex flex-col gap-1">
+					<span class="text-xs font-medium text-base-content/60">Name *</span>
+					<input
+						type="text"
+						class="input input-bordered input-sm font-mono"
+						bind:value={nc.name}
+						placeholder="z. B. mpd"
+					/>
+					{#if nc.name.trim() && !ncNameValid}
+						<span class="text-xs text-error">Erlaubt: Buchstaben, Ziffern, „.", „-", „_".</span>
+					{/if}
+				</label>
+				<div class="grid grid-cols-2 gap-3">
+					<label class="flex flex-col gap-1">
+						<span class="text-xs font-medium text-base-content/60">coursePath</span>
+						<input
+							type="text"
+							class="input input-bordered input-sm font-mono"
+							bind:value={nc.coursePath}
+							placeholder="mpd/semester"
+						/>
+					</label>
+					<label class="flex flex-col gap-1">
+						<span class="text-xs font-medium text-base-content/60">semesterPath</span>
+						<input
+							type="text"
+							class="input input-bordered input-sm font-mono"
+							bind:value={nc.semesterPath}
+							placeholder="ob-26ss"
+						/>
+					</label>
+				</div>
+				<label class="flex cursor-pointer items-center gap-2 text-sm">
+					<input type="checkbox" class="toggle toggle-sm" bind:checked={nc.useCoursenameAsPrefix} />
+					Kursname als Präfix
+				</label>
+				<label class="flex cursor-pointer items-center gap-2 text-sm">
+					<input
+						type="checkbox"
+						class="toggle toggle-sm"
+						bind:checked={nc.useEmailDomainAsSuffix}
+					/>
+					E-Mail-Domain als Suffix
+				</label>
+
+				{#if createError}
+					<div class="alert alert-error">
+						<span class="font-mono text-sm break-words whitespace-pre-wrap">{createError}</span>
+					</div>
+				{/if}
+
+				<div class="modal-action">
+					<button type="button" class="btn btn-ghost btn-sm" onclick={() => (newOpen = false)}>
+						Abbrechen
+					</button>
+					<button type="submit" class="btn btn-primary btn-sm" disabled={!ncNameValid || creating}>
+						{creating ? 'legt an …' : 'Anlegen'}
+					</button>
+				</div>
+			</form>
+		</div>
+		<button class="modal-backdrop" aria-label="schließen" onclick={() => (newOpen = false)}
+		></button>
+	</div>
+{/if}
