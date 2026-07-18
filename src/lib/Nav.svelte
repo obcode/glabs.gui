@@ -47,6 +47,20 @@
 			</span>
 		</a>
 
+		<!-- Hauptnavigation -->
+		<nav class="ml-2 flex items-center gap-0.5">
+			<a
+				href="/courses"
+				class="btn btn-ghost btn-sm rounded-full font-medium {page.url.pathname.startsWith(
+					'/courses'
+				)
+					? 'bg-primary/10 text-primary'
+					: 'text-base-content/70'}"
+			>
+				Kurse
+			</a>
+		</nav>
+
 		<div class="flex-1"></div>
 
 		<!-- Theme-Auswahl -->

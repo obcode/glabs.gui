@@ -32,11 +32,8 @@
 			Der Web-Editor für GitLab-Studierenden-Repos. Kurs-Konfigurationen geführt anlegen, als YAML
 			exportieren und – mit hinterlegtem Token – GitLab-Operationen direkt im Browser ausführen.
 		</p>
-		<div class="mt-6 flex items-center justify-center gap-2">
-			<span class="badge badge-outline">Gerüst</span>
-			<span class="text-sm text-base-content/50">
-				Config-Editor und Auth folgen in den nächsten Schritten.
-			</span>
+		<div class="mt-6 flex items-center justify-center gap-3">
+			<a href="/courses" class="btn btn-primary">Zu den Kursen →</a>
 		</div>
 	</section>
 
