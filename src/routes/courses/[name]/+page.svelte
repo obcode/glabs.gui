@@ -20,6 +20,50 @@
 		goto(`/courses/${encodeURIComponent(course.name)}/${encodeURIComponent(newAssignment.trim())}`);
 	}
 
+	// Kurs-Einstellungen bearbeiten.
+	let editOpen = $state(false);
+	let savingCourse = $state(false);
+	let editError = $state('');
+	let ec = $state({
+		coursePath: '',
+		semesterPath: '',
+		useCoursenameAsPrefix: true,
+		useEmailDomainAsSuffix: true
+	});
+	function openEdit() {
+		ec = {
+			coursePath: course.coursePath ?? '',
+			semesterPath: course.semesterPath ?? '',
+			useCoursenameAsPrefix: !!course.useCoursenameAsPrefix,
+			useEmailDomainAsSuffix: !!course.useEmailDomainAsSuffix
+		};
+		editError = '';
+		editOpen = true;
+	}
+	async function saveCourse() {
+		if (savingCourse) return;
+		savingCourse = true;
+		editError = '';
+		try {
+			const res = await fetch('/api/courses/set', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ name: course.name, ...ec })
+			});
+			const d = await res.json().catch(() => ({}));
+			if (!res.ok || d?.error) {
+				editError = d?.error || `Fehler (HTTP ${res.status})`;
+				return;
+			}
+			editOpen = false;
+			await invalidateAll();
+		} catch (e) {
+			editError = e instanceof Error ? e.message : String(e);
+		} finally {
+			savingCourse = false;
+		}
+	}
+
 	async function doDelete() {
 		deleting = true;
 		actionError = '';
@@ -68,6 +112,7 @@
 			<a class="btn btn-primary btn-sm" href="/download/course/{encodeURIComponent(course.name)}">
 				⬇️ YAML herunterladen
 			</a>
+			<button class="btn btn-outline btn-sm" onclick={openEdit}>✏️ Bearbeiten</button>
 			<button class="btn btn-error btn-outline btn-sm" onclick={() => (confirmOpen = true)}>
 				🗑️ Löschen
 			</button>
@@ -171,6 +216,72 @@
 		{/if}
 	</section>
 </main>
+
+{#if editOpen}
+	<div class="modal modal-open">
+		<div class="modal-box">
+			<h2 class="text-lg font-semibold">Kurs bearbeiten</h2>
+			<p class="mt-1 text-sm text-base-content/60">
+				Assignments, Studierende und Gruppen bleiben unverändert.
+			</p>
+			<form
+				class="mt-3 flex flex-col gap-3"
+				onsubmit={(e) => {
+					e.preventDefault();
+					saveCourse();
+				}}
+			>
+				<div class="grid grid-cols-2 gap-3">
+					<label class="flex flex-col gap-1">
+						<span class="text-xs font-medium text-base-content/60">coursePath</span>
+						<input
+							type="text"
+							class="input input-bordered input-sm font-mono"
+							bind:value={ec.coursePath}
+						/>
+					</label>
+					<label class="flex flex-col gap-1">
+						<span class="text-xs font-medium text-base-content/60">semesterPath</span>
+						<input
+							type="text"
+							class="input input-bordered input-sm font-mono"
+							bind:value={ec.semesterPath}
+						/>
+					</label>
+				</div>
+				<label class="flex cursor-pointer items-center gap-2 text-sm">
+					<input type="checkbox" class="toggle toggle-sm" bind:checked={ec.useCoursenameAsPrefix} />
+					Kursname als Präfix
+				</label>
+				<label class="flex cursor-pointer items-center gap-2 text-sm">
+					<input
+						type="checkbox"
+						class="toggle toggle-sm"
+						bind:checked={ec.useEmailDomainAsSuffix}
+					/>
+					E-Mail-Domain als Suffix
+				</label>
+
+				{#if editError}
+					<div class="alert alert-error">
+						<span class="font-mono text-sm break-words whitespace-pre-wrap">{editError}</span>
+					</div>
+				{/if}
+
+				<div class="modal-action">
+					<button type="button" class="btn btn-ghost btn-sm" onclick={() => (editOpen = false)}>
+						Abbrechen
+					</button>
+					<button type="submit" class="btn btn-primary btn-sm" disabled={savingCourse}>
+						{savingCourse ? 'speichert …' : 'Speichern'}
+					</button>
+				</div>
+			</form>
+		</div>
+		<button class="modal-backdrop" aria-label="schließen" onclick={() => (editOpen = false)}
+		></button>
+	</div>
+{/if}
 
 {#if confirmOpen}
 	<div class="modal modal-open">

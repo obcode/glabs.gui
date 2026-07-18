@@ -20,6 +20,8 @@ export const load = async ({ params }) => {
 						name
 						coursePath
 						semesterPath
+						useCoursenameAsPrefix
+						useEmailDomainAsSuffix
 						assignmentNames
 						studentCount
 						groupCount
