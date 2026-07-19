@@ -1,13 +1,50 @@
 <script lang="ts">
+	import { subscribeRepoOverview, type RepoOverviewEvent } from '$lib/reposSubscription';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
-	let overview = $derived(data.overview ?? []);
-	let error = $derived(data.error);
-	let needsToken = $derived(!!error && /token/i.test(error));
+	type Assignment = NonNullable<RepoOverviewEvent['assignment']>;
 
-	function missing(a: { repos: { for: string; url: string; exists: boolean }[] }) {
+	let assignments = $state<Assignment[]>([]);
+	let total = $state(0);
+	let checked = $state(0);
+	let done = $state(false);
+	let error = $state<string | null>(null);
+
+	let needsToken = $derived(!!error && /token/i.test(error));
+	let sorted = $derived([...assignments].sort((a, b) => a.name.localeCompare(b.name)));
+
+	$effect(() => {
+		const course = data.course;
+		// Reset for this course, then stream assignment by assignment.
+		assignments = [];
+		total = 0;
+		checked = 0;
+		done = false;
+		error = null;
+		return subscribeRepoOverview(course, {
+			next: (e) => {
+				if (e.total) total = e.total;
+				if (e.error) {
+					error = e.error;
+					done = true;
+					return;
+				}
+				if (e.assignment) {
+					assignments = [...assignments, e.assignment];
+					checked += 1;
+				}
+				if (e.done) done = true;
+			},
+			error: (msg) => {
+				error = msg;
+				done = true;
+			}
+		});
+	});
+
+	function missing(a: Assignment) {
 		return a.repos.filter((r) => !r.exists);
 	}
 </script>
@@ -25,8 +62,21 @@
 		(GitLab-Token nötig).
 	</p>
 
+	<div class="mt-4 flex items-center gap-3 text-sm">
+		{#if !done}
+			<span class="loading loading-spinner loading-sm"></span>
+			<span>prüfe GitLab … {checked}{total ? `/${total}` : ''} Assignments</span>
+		{:else if !error}
+			<span class="text-success">✓ fertig ({checked} Assignments)</span>
+		{/if}
+	</div>
+
+	{#if total > 0 && !done}
+		<progress class="progress progress-primary mt-2 w-full" value={checked} max={total}></progress>
+	{/if}
+
 	{#if error}
-		<div class="mt-6 alert alert-error">
+		<div class="mt-4 alert alert-error">
 			<span class="font-mono text-sm break-words whitespace-pre-wrap">{error}</span>
 		</div>
 		{#if needsToken}
@@ -34,11 +84,11 @@
 				<a class="link link-primary" href="/token">GitLab-Token hinterlegen →</a>
 			</p>
 		{/if}
-	{:else if overview.length === 0}
-		<p class="mt-6 text-sm text-base-content/50">Keine Assignments in diesem Kurs.</p>
-	{:else}
+	{/if}
+
+	{#if sorted.length > 0}
 		<div class="mt-6 flex flex-col gap-2">
-			{#each overview as a (a.name)}
+			{#each sorted as a (a.name)}
 				{@const miss = missing(a)}
 				<div class="rounded-2xl border border-base-200 p-4">
 					<div class="flex flex-wrap items-center gap-2">
@@ -49,7 +99,7 @@
 							{a.name}
 						</a>
 						{#if a.note}
-							<span class="badge badge-ghost badge-sm" title={a.note}>—</span>
+							<span class="badge badge-ghost badge-sm">—</span>
 							<span class="text-xs text-base-content/50">{a.note}</span>
 						{:else}
 							<span
