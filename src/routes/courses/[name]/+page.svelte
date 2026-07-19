@@ -9,6 +9,16 @@
 	let course = $derived(data.course);
 	let lint = $derived(data.lint ?? []);
 
+	// Aktivitäts-Log (newest-first) → jüngster Eintrag pro Assignment für die
+	// Status-Anzeige auf der Assignment-Card.
+	type Activity = { assignment: string; op: string; status: string; detail: string; at: string };
+	let activity = $derived((data.activity ?? []) as Activity[]);
+	let latestByAssignment = $derived.by(() => {
+		const m: Record<string, Activity> = {};
+		for (const e of activity) if (!m[e.assignment]) m[e.assignment] = e;
+		return m;
+	});
+
 	let deleting = $state(false);
 	let confirmOpen = $state(false);
 	let actionError = $state('');
@@ -256,13 +266,28 @@
 		{#if course.assignmentNames.length === 0}
 			<p class="mt-2 text-sm text-base-content/50">Noch keine Assignments in diesem Kurs.</p>
 		{:else}
-			<div class="mt-2 flex flex-wrap gap-1.5">
-				{#each course.assignmentNames as a (a)}
+			<div class="mt-2 flex flex-col gap-2">
+				{#each course.assignmentNames as name (name)}
+					{@const act = latestByAssignment[name]}
 					<a
-						class="badge badge-outline hover:badge-primary"
-						href="/courses/{encodeURIComponent(course.name)}/{encodeURIComponent(a)}"
+						class="flex items-center justify-between gap-3 rounded-lg border border-base-200 p-3 transition hover:border-primary hover:bg-base-200/40"
+						href="/courses/{encodeURIComponent(course.name)}/{encodeURIComponent(name)}"
 					>
-						{a}
+						<span class="font-mono font-medium">{name}</span>
+						{#if act}
+							<span class="flex items-center gap-2 text-xs">
+								<span
+									class="badge badge-sm {act.status === 'done' ? 'badge-success' : 'badge-error'}"
+									title={act.detail}
+								>
+									{act.op}
+									{act.status === 'done' ? '✓' : '✗'}
+								</span>
+								<span class="text-base-content/50">{formatDateTime(act.at)}</span>
+							</span>
+						{:else}
+							<span class="text-xs text-base-content/40">— noch keine Web-Aktion —</span>
+						{/if}
 					</a>
 				{/each}
 			</div>
@@ -296,8 +321,17 @@
 	</section>
 
 	<section class="mt-6">
-		<h2 class="text-sm font-semibold text-base-content/70">Studierende & Gruppen</h2>
-		<RosterEditor {course} />
+		<details class="group">
+			<summary
+				class="flex cursor-pointer items-center gap-2 text-sm font-semibold text-base-content/70 select-none"
+			>
+				<span class="transition-transform group-open:rotate-90">▶</span>
+				Studierende & Gruppen ({course.studentCount} / {course.groupCount})
+			</summary>
+			<div class="mt-3">
+				<RosterEditor {course} />
+			</div>
+		</details>
 	</section>
 
 	<section class="mt-6">

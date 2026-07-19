@@ -62,5 +62,28 @@ export const load: PageServerLoad = async ({ params }) => {
 		lint = [];
 	}
 
-	return { course, lint };
+	// Aktivitäts-Log separat und resilient: der Status pro Assignment ist eine
+	// Ergänzung, kein Grund, die Seite scheitern zu lassen.
+	let activity: { assignment: string; op: string; status: string; detail: string; at: string }[];
+	try {
+		const d = await backendRequest(
+			graphql(`
+				query CourseActivity($name: String!) {
+					courseActivity(course: $name) {
+						assignment
+						op
+						status
+						detail
+						at
+					}
+				}
+			`),
+			{ name }
+		);
+		activity = d?.courseActivity ?? [];
+	} catch {
+		activity = [];
+	}
+
+	return { course, lint, activity };
 };
