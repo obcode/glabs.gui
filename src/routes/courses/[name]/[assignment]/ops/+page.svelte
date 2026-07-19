@@ -30,6 +30,7 @@
 	let accessLevel = $state('');
 	let branch = $state('');
 	let unarchive = $state(false);
+	let skipInvite = $state(false);
 
 	let plan = $state<Plan | null>(null);
 	let planning = $state(false);
@@ -81,6 +82,7 @@
 		if (selectedOp === 'SETACCESS') return accessLevel ? { accessLevel } : {};
 		if (selectedOp === 'PROTECT') return branch ? { branch } : {};
 		if (selectedOp === 'ARCHIVE') return { unarchive };
+		if (selectedOp === 'GENERATE') return { skipInvite };
 		return {};
 	}
 
@@ -251,10 +253,16 @@
 					Entarchivieren statt archivieren
 				</label>
 			{:else if selectedOp === 'GENERATE'}
-				<p class="text-xs text-base-content/60">
-					Legt fehlende Repos an, pusht den Startercode und lädt Studierende/Gruppen ein. Bestehende
-					Repos werden übersprungen. Der Plan zeigt die betroffenen Repos vorab.
-				</p>
+				<div class="flex flex-col gap-2">
+					<p class="text-xs text-base-content/60">
+						Legt fehlende Repos an, pusht den Startercode und lädt Studierende/Gruppen ein.
+						Bestehende Repos werden übersprungen. Der Plan zeigt die betroffenen Repos vorab.
+					</p>
+					<label class="flex w-fit cursor-pointer items-center gap-2 text-sm">
+						<input type="checkbox" class="toggle toggle-sm" bind:checked={skipInvite} />
+						Studierende/Gruppen <b>nicht</b> einladen (Debug)
+					</label>
+				</div>
 			{:else if selectedOp === 'UPDATE'}
 				<p class="text-xs text-warning">
 					⚠️ Pusht den Startercode per Force in <b>bestehende</b> Repos und kann Studi-Arbeit überschreiben.
