@@ -331,6 +331,40 @@
 		}
 	}
 
+	// Umbenennen: Geschwister, die per `extends` erben, biegt der Server mit um.
+	let showRename = $state(false);
+	let renameName = $state('');
+	let renaming = $state(false);
+	let renameError = $state('');
+
+	async function doRename() {
+		const newName = renameName.trim();
+		if (!newName || newName === a.name) {
+			showRename = false;
+			return;
+		}
+		renaming = true;
+		renameError = '';
+		try {
+			const res = await fetch('/api/assignment/rename', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ course: a.course, oldName: a.name, newName })
+			});
+			const d = await res.json().catch(() => ({}));
+			if (!res.ok || d?.error) {
+				renameError = d?.error || `Fehler (HTTP ${res.status})`;
+				return;
+			}
+			showRename = false;
+			await goto(`/courses/${encodeURIComponent(a.course)}/${encodeURIComponent(newName)}`);
+		} catch (e) {
+			renameError = e instanceof Error ? e.message : String(e);
+		} finally {
+			renaming = false;
+		}
+	}
+
 	// Client-seitige Pflichtprüfung (nur Vorab-Hinweis; verbindlich prüft der Server).
 	let clientErrors = $derived.by(() => {
 		const e: Record<string, string> = {};
@@ -405,6 +439,17 @@
 			>
 				📊 Report
 			</a>
+			<button
+				class="btn btn-outline btn-xs"
+				onclick={() => {
+					renameName = a.name;
+					renameError = '';
+					showRename = true;
+				}}
+				title="Assignment umbenennen"
+			>
+				🏷️ Umbenennen
+			</button>
 			<button
 				class="btn btn-outline btn-xs"
 				onclick={() => {
@@ -801,6 +846,42 @@
 			</div>
 		</div>
 		<button class="modal-backdrop" aria-label="schließen" onclick={() => (showCopy = false)}
+		></button>
+	</div>
+{/if}
+
+{#if showRename}
+	<div class="modal modal-open">
+		<div class="modal-box">
+			<h2 class="text-lg font-semibold">Assignment umbenennen</h2>
+			<p class="mt-2 text-sm">
+				Benennt <span class="font-mono font-semibold">{a.name}</span> um. Geschwister, die per
+				<code>extends</code> erben, werden automatisch mit umgebogen.
+			</p>
+			<label class="mt-4 flex flex-col gap-1">
+				<span class="text-sm font-medium">Neuer Name</span>
+				<!-- svelte-ignore a11y_autofocus -->
+				<input
+					type="text"
+					class="input input-bordered input-sm"
+					bind:value={renameName}
+					autofocus
+					onkeydown={(e) => e.key === 'Enter' && doRename()}
+				/>
+			</label>
+			{#if renameError}<p class="mt-2 text-sm text-error">{renameError}</p>{/if}
+			<div class="modal-action">
+				<button class="btn btn-ghost btn-sm" onclick={() => (showRename = false)}>Abbrechen</button>
+				<button
+					class="btn btn-primary btn-sm"
+					disabled={renaming || !renameName.trim() || renameName.trim() === a.name}
+					onclick={doRename}
+				>
+					{renaming ? 'benennt um …' : 'Umbenennen'}
+				</button>
+			</div>
+		</div>
+		<button class="modal-backdrop" aria-label="schließen" onclick={() => (showRename = false)}
 		></button>
 	</div>
 {/if}
