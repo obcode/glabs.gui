@@ -15,6 +15,9 @@ export const load: PageServerLoad = async ({ params }) => {
 		const d = await backendRequest(
 			graphql(`
 				query AssignmentEditor($course: String!, $name: String!) {
+					course(name: $course) {
+						assignmentNames
+					}
 					assignmentSchema {
 						key
 						label
@@ -63,6 +66,7 @@ export const load: PageServerLoad = async ({ params }) => {
 						course
 						name
 						extends
+						extendsOptions
 						abstract
 						own {
 							key
@@ -95,6 +99,9 @@ export const load: PageServerLoad = async ({ params }) => {
 					course,
 					name: assignment,
 					extends: null,
+					// A brand-new assignment may inherit from any existing sibling
+					// (it is not in the course yet, so none of them is itself).
+					extendsOptions: d?.course?.assignmentNames ?? [],
 					abstract: false,
 					own: [],
 					resolved: '',

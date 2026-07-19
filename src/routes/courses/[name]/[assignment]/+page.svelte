@@ -43,6 +43,10 @@
 	let { data }: { data: PageData } = $props();
 
 	let a = $derived(data.assignment);
+	// Gültige `extends`-Ziele: die Geschwister-Assignments des Kurses (server-
+	// autoritativ; für ein neues Assignment alle existierenden Namen). Speist das
+	// Vererbungs-Dropdown statt eines Freitextfelds.
+	let extendsOptions = $derived(a.extendsOptions ?? []);
 	let schema = $derived(data.schema ?? []);
 	let branchSchema = $derived(data.branchSchema ?? []);
 	let settingsSchema = $derived(data.settingsSchema ?? []);
@@ -406,7 +410,22 @@
 						</label>
 						<p class="text-xs text-base-content/60">{field.description}</p>
 
-						{#if field.kind === 'ENUM'}
+						{#if field.key === 'extends'}
+							<!-- `extends` ist kurs-intern → Dropdown der Geschwister statt Freitext -->
+							<select
+								id="f-{field.key}"
+								class="select select-bordered select-sm"
+								bind:value={form[field.key]}
+							>
+								<option value="">— keine Vererbung —</option>
+								{#each extendsOptions as name (name)}
+									<option value={name}>{name}</option>
+								{/each}
+								{#if form[field.key] && !extendsOptions.includes(form[field.key])}
+									<option value={form[field.key]}>{form[field.key]} (unbekannt)</option>
+								{/if}
+							</select>
+						{:else if field.kind === 'ENUM'}
 							<select
 								id="f-{field.key}"
 								class="select select-bordered select-sm"
