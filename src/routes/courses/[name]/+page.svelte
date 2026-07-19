@@ -216,6 +216,13 @@
 			</a>
 			<a
 				class="btn btn-outline btn-sm"
+				href="/courses/{encodeURIComponent(course.name)}/repos"
+				title="Übersicht der generierten Repos (GitLab-Token nötig)"
+			>
+				📦 Repos
+			</a>
+			<a
+				class="btn btn-outline btn-sm"
 				href="/courses/{encodeURIComponent(course.name)}/check"
 				title="Roster gegen GitLab prüfen (GitLab-Token nötig)"
 			>
