@@ -7,13 +7,18 @@
 	let { data }: { data: PageData } = $props();
 
 	type Plan = PlanOpMutation['planOp'];
-	type OpValue = 'SETACCESS' | 'PROTECT' | 'ARCHIVE' | 'DELETE' | 'GENERATE';
+	type OpValue = 'SETACCESS' | 'PROTECT' | 'ARCHIVE' | 'DELETE' | 'GENERATE' | 'UPDATE';
 
 	const OPS: { value: OpValue; label: string; desc: string }[] = [
 		{
 			value: 'GENERATE',
 			label: 'Generate',
 			desc: 'Repos anlegen, Startercode pushen, Studierende/Gruppen einladen'
+		},
+		{
+			value: 'UPDATE',
+			label: 'Update',
+			desc: 'Startercode in bestehende Repos pushen (force) — nur für untouched Repos!'
 		},
 		{ value: 'SETACCESS', label: 'Set Access', desc: 'Zugriffsstufe der Repos setzen' },
 		{ value: 'PROTECT', label: 'Protect', desc: 'Branch in den Repos schützen' },
@@ -249,6 +254,11 @@
 				<p class="text-xs text-base-content/60">
 					Legt fehlende Repos an, pusht den Startercode und lädt Studierende/Gruppen ein. Bestehende
 					Repos werden übersprungen. Der Plan zeigt die betroffenen Repos vorab.
+				</p>
+			{:else if selectedOp === 'UPDATE'}
+				<p class="text-xs text-warning">
+					⚠️ Pusht den Startercode per Force in <b>bestehende</b> Repos und kann Studi-Arbeit überschreiben.
+					Nur für unberührte Repos. Destruktiv — Bestätigung erforderlich.
 				</p>
 			{/if}
 			<button class="btn btn-primary btn-sm" disabled={planning} onclick={doPlan}>
