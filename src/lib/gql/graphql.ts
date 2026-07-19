@@ -63,6 +63,8 @@ export type OpParams = {
   accessLevel?: string | null | undefined;
   /** protect: the branch to protect. */
   branch?: string | null | undefined;
+  /** generate: create repos and push starter code but do NOT add/invite students or groups (for debugging). */
+  skipInvite?: boolean | null | undefined;
   /** archive: unarchive instead of archive. */
   unarchive?: boolean | null | undefined;
 };
