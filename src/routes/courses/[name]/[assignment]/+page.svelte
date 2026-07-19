@@ -2,6 +2,7 @@
 	import Convert from 'ansi-to-html';
 	import { untrack } from 'svelte';
 	import { invalidateAll, goto } from '$app/navigation';
+	import { formatDateTime } from '$lib/format';
 	import type { PageData } from './$types';
 
 	// Strukturtypen für die schema-getriebenen Felder (decken die Query-Formen von
@@ -56,6 +57,10 @@
 	// Repository-URLs (aus der aufgelösten Config; null bei neu/abstrakt/nicht
 	// auflösbar). Spiegelt den gespeicherten Stand, nicht den ungespeicherten Entwurf.
 	let urls = $derived(data.urls ?? null);
+	// Aktivitäts-Log dieses Assignments (Web-Ops, newest-first).
+	let activity = $derived(
+		(data.activity ?? []) as { op: string; status: string; detail: string; at: string }[]
+	);
 
 	// Felder nach ihrer Sektion (`group`) bündeln, Reihenfolge wie im Schema.
 	// Leere Gruppe ("") ist der Top-Level-Abschnitt ohne Überschrift.
@@ -788,6 +793,28 @@
 					„Studierende &amp; Gruppen" an.
 				</p>
 			{/if}
+		</section>
+	{/if}
+
+	{#if activity.length > 0}
+		<section class="mt-8">
+			<h2 class="text-sm font-semibold text-base-content/70">Aktivität ({activity.length})</h2>
+			<p class="mt-1 text-xs text-base-content/50">
+				Über die GUI ausgeführte Operationen (setaccess/protect/archive/delete/generate/update),
+				neueste zuerst.
+			</p>
+			<ul class="mt-3 flex flex-col divide-y divide-base-200 text-sm">
+				{#each activity as e, i (i)}
+					<li class="flex flex-wrap items-center gap-x-3 gap-y-0.5 py-1.5">
+						<span class="badge badge-sm {e.status === 'done' ? 'badge-success' : 'badge-error'}">
+							{e.op}
+							{e.status === 'done' ? '✓' : '✗'}
+						</span>
+						<span class="text-base-content/50">{formatDateTime(e.at)}</span>
+						{#if e.detail}<span class="text-base-content/70">— {e.detail}</span>{/if}
+					</li>
+				{/each}
+			</ul>
 		</section>
 	{/if}
 </main>
