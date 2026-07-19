@@ -142,6 +142,8 @@ extend type Mutation {
   importAssignmentYAML(course: String!, yaml: String!): AssignmentView!
   "Copy one of the caller's assignments to a new name within the same course. Only the name must be unique; the copy is otherwise identical (including `extends`). Rejects a name that already exists or is not path-safe."
   copyAssignment(course: String!, from: String!, newName: String!): AssignmentView!
+  "Rename one of the caller's assignments within a course. Any sibling that inherits from the old name via `extends` is repointed to the new name. Rejects a name that already exists or is not path-safe."
+  renameAssignment(course: String!, oldName: String!, newName: String!): AssignmentView!
   "Delete one assignment from one of the caller's courses. Returns false if there was no such assignment."
   deleteAssignment(course: String!, name: String!): Boolean!
 }
@@ -317,6 +319,8 @@ type Mutation {
   setCourseStudents(name: String!, students: [String!]!): Course!
   "Replace the course-level groups of one of the caller's courses. The GUI merges additively before calling this."
   setCourseGroups(name: String!, groups: [GroupInput!]!): Course!
+  "Rename one of the caller's courses. The course name is the YAML file's top-level key, so this re-encodes the raw bytes. Rejects a new name that already exists or is not path-safe."
+  renameCourse(oldName: String!, newName: String!): Course!
   "Delete one of the current user's courses."
   deleteCourse(name: String!): Boolean!
 }

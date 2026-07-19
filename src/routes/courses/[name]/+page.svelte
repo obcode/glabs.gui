@@ -135,6 +135,45 @@
 		}
 	}
 
+	// Umbenennen: der Kursname ist der YAML-Top-Level-Key; der Server prüft die
+	// Eindeutigkeit verbindlich.
+	let renameOpen = $state(false);
+	let renameName = $state('');
+	let renaming = $state(false);
+	let renameError = $state('');
+	function openRename() {
+		renameName = course.name;
+		renameError = '';
+		renameOpen = true;
+	}
+	async function doRename() {
+		const newName = renameName.trim();
+		if (!newName || newName === course.name) {
+			renameOpen = false;
+			return;
+		}
+		renaming = true;
+		renameError = '';
+		try {
+			const res = await fetch('/api/courses/rename', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ oldName: course.name, newName })
+			});
+			const d = await res.json().catch(() => ({}));
+			if (!res.ok || d?.error) {
+				renameError = d?.error || `Fehler (HTTP ${res.status})`;
+				return;
+			}
+			renameOpen = false;
+			await goto(`/courses/${encodeURIComponent(newName)}`);
+		} catch (err) {
+			renameError = err instanceof Error ? err.message : String(err);
+		} finally {
+			renaming = false;
+		}
+	}
+
 	function sevBadge(sev: string) {
 		return sev === 'PROBLEM' ? 'badge-error' : 'badge-warning';
 	}
@@ -166,6 +205,9 @@
 				🔍 Prüfen
 			</a>
 			<button class="btn btn-outline btn-sm" onclick={openEdit}>✏️ Bearbeiten</button>
+			<button class="btn btn-outline btn-sm" onclick={openRename} title="Kurs umbenennen">
+				🏷️ Umbenennen
+			</button>
 			<button class="btn btn-error btn-outline btn-sm" onclick={() => (confirmOpen = true)}>
 				🗑️ Löschen
 			</button>
@@ -412,6 +454,42 @@
 			</div>
 		</div>
 		<button class="modal-backdrop" aria-label="schließen" onclick={() => (confirmOpen = false)}
+		></button>
+	</div>
+{/if}
+
+{#if renameOpen}
+	<div class="modal modal-open">
+		<div class="modal-box">
+			<h2 class="text-lg font-semibold">Kurs umbenennen</h2>
+			<p class="mt-2 text-sm">
+				Benennt <span class="font-mono font-semibold">{course.name}</span> um. Der Name ist der Top-Level-Schlüssel
+				der YAML — der Download spiegelt das danach.
+			</p>
+			<label class="mt-4 flex flex-col gap-1">
+				<span class="text-sm font-medium">Neuer Name</span>
+				<!-- svelte-ignore a11y_autofocus -->
+				<input
+					type="text"
+					class="input input-bordered input-sm"
+					bind:value={renameName}
+					autofocus
+					onkeydown={(e) => e.key === 'Enter' && doRename()}
+				/>
+			</label>
+			{#if renameError}<p class="mt-2 text-sm text-error">{renameError}</p>{/if}
+			<div class="modal-action">
+				<button class="btn btn-ghost btn-sm" onclick={() => (renameOpen = false)}>Abbrechen</button>
+				<button
+					class="btn btn-primary btn-sm"
+					disabled={renaming || !renameName.trim() || renameName.trim() === course.name}
+					onclick={doRename}
+				>
+					{renaming ? 'benennt um …' : 'Umbenennen'}
+				</button>
+			</div>
+		</div>
+		<button class="modal-backdrop" aria-label="schließen" onclick={() => (renameOpen = false)}
 		></button>
 	</div>
 {/if}
