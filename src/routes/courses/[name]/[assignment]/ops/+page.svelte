@@ -32,6 +32,15 @@
 	let unarchive = $state(false);
 	let skipInvite = $state(false);
 
+	// onlyFor: optionally restrict the op to selected students/groups. Empty = all.
+	let targets = $derived(data.targets ?? []);
+	let per = $derived(data.per);
+	let selected = $state<string[]>([]);
+	function toggleTarget(t: string) {
+		selected = selected.includes(t) ? selected.filter((x) => x !== t) : [...selected, t];
+		plan = null;
+	}
+
 	let plan = $state<Plan | null>(null);
 	let planning = $state(false);
 	let planError = $state('');
@@ -103,7 +112,8 @@
 					op: selectedOp,
 					course: data.course,
 					assignment: data.assignment,
-					params: buildParams()
+					params: buildParams(),
+					onlyFor: selected
 				})
 			});
 			const d = await res.json().catch(() => ({}));
@@ -273,6 +283,46 @@
 				{planning ? 'plant …' : 'Planen'}
 			</button>
 		</div>
+
+		{#if targets.length > 0}
+			<details class="mt-3">
+				<summary class="cursor-pointer text-sm text-base-content/70">
+					Nur für ausgewählte {per === 'group' ? 'Gruppen' : 'Studierende'}
+					{selected.length > 0 ? `(${selected.length} ausgewählt)` : '(optional — leer = alle)'}
+				</summary>
+				<div class="mt-2 flex flex-wrap gap-2">
+					<button
+						type="button"
+						class="btn btn-ghost btn-xs"
+						onclick={() => {
+							selected = [];
+							plan = null;
+						}}>keine</button
+					>
+					<button
+						type="button"
+						class="btn btn-ghost btn-xs"
+						onclick={() => {
+							selected = [...targets];
+							plan = null;
+						}}>alle</button
+					>
+				</div>
+				<div class="mt-2 grid gap-1 sm:grid-cols-2">
+					{#each targets as t (t)}
+						<label class="flex cursor-pointer items-center gap-2 text-sm">
+							<input
+								type="checkbox"
+								class="checkbox checkbox-sm"
+								checked={selected.includes(t)}
+								onchange={() => toggleTarget(t)}
+							/>
+							<span class="font-mono text-xs break-all">{t}</span>
+						</label>
+					{/each}
+				</div>
+			</details>
+		{/if}
 
 		{#if planError}
 			<div class="mt-3 alert alert-error">
