@@ -300,6 +300,37 @@
 		}
 	}
 
+	// Kopieren: nur der Name muss eindeutig sein, der Server prüft das verbindlich.
+	let showCopy = $state(false);
+	let copyName = $state('');
+	let copying = $state(false);
+	let copyError = $state('');
+
+	async function doCopy() {
+		const newName = copyName.trim();
+		if (!newName) return;
+		copying = true;
+		copyError = '';
+		try {
+			const res = await fetch('/api/assignment/copy', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ course: a.course, from: a.name, newName })
+			});
+			const d = await res.json().catch(() => ({}));
+			if (!res.ok || d?.error) {
+				copyError = d?.error || `Fehler (HTTP ${res.status})`;
+				return;
+			}
+			showCopy = false;
+			await goto(`/courses/${encodeURIComponent(a.course)}/${encodeURIComponent(newName)}`);
+		} catch (e) {
+			copyError = e instanceof Error ? e.message : String(e);
+		} finally {
+			copying = false;
+		}
+	}
+
 	// Client-seitige Pflichtprüfung (nur Vorab-Hinweis; verbindlich prüft der Server).
 	let clientErrors = $derived.by(() => {
 		const e: Record<string, string> = {};
@@ -374,6 +405,17 @@
 			>
 				📊 Report
 			</a>
+			<button
+				class="btn btn-outline btn-xs"
+				onclick={() => {
+					copyName = `${a.name}-kopie`;
+					copyError = '';
+					showCopy = true;
+				}}
+				title="Assignment unter neuem Namen kopieren"
+			>
+				📋 Kopieren
+			</button>
 			<button
 				class="btn btn-error btn-outline btn-xs"
 				onclick={() => (confirmDelete = true)}
@@ -723,6 +765,42 @@
 			</div>
 		</div>
 		<button class="modal-backdrop" aria-label="schließen" onclick={() => (confirmDelete = false)}
+		></button>
+	</div>
+{/if}
+
+{#if showCopy}
+	<div class="modal modal-open">
+		<div class="modal-box">
+			<h2 class="text-lg font-semibold">Assignment kopieren</h2>
+			<p class="mt-2 text-sm">
+				Kopiert <span class="font-mono font-semibold">{a.name}</span> unter einem neuen Namen. Nur der
+				Name muss eindeutig sein — sonst ist die Kopie identisch.
+			</p>
+			<label class="mt-4 flex flex-col gap-1">
+				<span class="text-sm font-medium">Neuer Name</span>
+				<!-- svelte-ignore a11y_autofocus -->
+				<input
+					type="text"
+					class="input input-bordered input-sm"
+					bind:value={copyName}
+					autofocus
+					onkeydown={(e) => e.key === 'Enter' && doCopy()}
+				/>
+			</label>
+			{#if copyError}<p class="mt-2 text-sm text-error">{copyError}</p>{/if}
+			<div class="modal-action">
+				<button class="btn btn-ghost btn-sm" onclick={() => (showCopy = false)}>Abbrechen</button>
+				<button
+					class="btn btn-primary btn-sm"
+					disabled={copying || !copyName.trim()}
+					onclick={doCopy}
+				>
+					{copying ? 'kopiert …' : 'Kopieren'}
+				</button>
+			</div>
+		</div>
+		<button class="modal-backdrop" aria-label="schließen" onclick={() => (showCopy = false)}
 		></button>
 	</div>
 {/if}
