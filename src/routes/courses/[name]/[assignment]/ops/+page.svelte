@@ -36,14 +36,18 @@
 	let targets = $derived(data.targets ?? []);
 	let per = $derived(data.per);
 	let selected = $state<string[]>([]);
+	// The subset a shown plan was made with; a run/schedule uses this (via the
+	// token), not the current checkboxes — so checking a box does not clear the plan.
+	let plannedFor = $state<string[]>([]);
 	function toggleTarget(t: string) {
 		selected = selected.includes(t) ? selected.filter((x) => x !== t) : [...selected, t];
-		plan = null;
 	}
 
 	let plan = $state<Plan | null>(null);
 	let planning = $state(false);
 	let planError = $state('');
+	// True when the target selection changed since the shown plan was made.
+	let planStale = $derived(!!plan && plannedFor.join('\n') !== selected.join('\n'));
 
 	let confirmPhrase = $state('');
 
@@ -122,6 +126,7 @@
 				return;
 			}
 			plan = d.planOp;
+			plannedFor = [...selected];
 		} catch (e) {
 			planError = e instanceof Error ? e.message : String(e);
 		} finally {
@@ -291,21 +296,13 @@
 					{selected.length > 0 ? `(${selected.length} ausgewählt)` : '(optional — leer = alle)'}
 				</summary>
 				<div class="mt-2 flex flex-wrap gap-2">
-					<button
-						type="button"
-						class="btn btn-ghost btn-xs"
-						onclick={() => {
-							selected = [];
-							plan = null;
-						}}>keine</button
+					<button type="button" class="btn btn-ghost btn-xs" onclick={() => (selected = [])}
+						>keine</button
 					>
 					<button
 						type="button"
 						class="btn btn-ghost btn-xs"
-						onclick={() => {
-							selected = [...targets];
-							plan = null;
-						}}>alle</button
+						onclick={() => (selected = [...targets])}>alle</button
 					>
 				</div>
 				<div class="mt-2 grid gap-1 sm:grid-cols-2">
@@ -322,6 +319,12 @@
 					{/each}
 				</div>
 			</details>
+			{#if planStale}
+				<p class="mt-1 text-xs text-warning">
+					Auswahl geändert — „Planen" erneut klicken, um sie zu übernehmen. (Der aktuelle Plan
+					betrifft {plannedFor.length > 0 ? `${plannedFor.length} ausgewählte` : 'alle'}.)
+				</p>
+			{/if}
 		{/if}
 
 		{#if planError}
