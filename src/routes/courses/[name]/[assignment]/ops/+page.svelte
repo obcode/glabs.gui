@@ -33,10 +33,20 @@
 	let runError = $state('');
 	let stopRun: (() => void) | null = null;
 
+	// Terminieren statt jetzt ausführen: nutzt denselben Plan-Token.
+	let runAt = $state('');
+	let graceMinutes = $state(60);
+	let scheduling = $state(false);
+	let scheduleError = $state('');
+	let scheduled = $state<{ id: string } | null>(null);
+
 	let courseHref = $derived(`/courses/${encodeURIComponent(data.course)}`);
 	let assignmentHref = $derived(`${courseHref}/${encodeURIComponent(data.assignment)}`);
 	let canRun = $derived(
 		!!plan && !running && (!plan.destructive || confirmPhrase === plan.confirmPhrase)
+	);
+	let canSchedule = $derived(
+		!!plan && !!runAt && !scheduling && (!plan.destructive || confirmPhrase === plan.confirmPhrase)
 	);
 
 	let resolvedHtml = $derived.by(() => {
@@ -117,6 +127,38 @@
 				done = true;
 			}
 		});
+	}
+
+	async function doSchedule() {
+		if (!plan || !canSchedule) return;
+		scheduling = true;
+		scheduleError = '';
+		scheduled = null;
+		try {
+			// datetime-local is a local wall-clock string; toISOString sends the
+			// absolute instant (the backend stores UTC, shows local).
+			const iso = new Date(runAt).toISOString();
+			const res = await fetch('/api/op/schedule', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({
+					token: plan.token,
+					runAt: iso,
+					graceMinutes,
+					confirmPhrase: plan.destructive ? confirmPhrase : null
+				})
+			});
+			const d = await res.json().catch(() => ({}));
+			if (!res.ok || d?.error) {
+				scheduleError = d?.error || `Fehler (HTTP ${res.status})`;
+				return;
+			}
+			scheduled = d.scheduleOp;
+		} catch (e) {
+			scheduleError = e instanceof Error ? e.message : String(e);
+		} finally {
+			scheduling = false;
+		}
 	}
 
 	function levelClass(level: LogLine['level']): string {
@@ -273,6 +315,42 @@
 			<p class="mt-1 text-xs text-base-content/50">
 				Läuft serverseitig weiter, auch wenn du den Tab schließt.
 			</p>
+
+			<div class="divider text-xs text-base-content/40">oder terminieren</div>
+			<div class="flex flex-wrap items-end gap-3">
+				<label class="flex flex-col gap-1">
+					<span class="text-xs font-medium text-base-content/60">Zeitpunkt (lokal)</span>
+					<input type="datetime-local" class="input input-bordered input-sm" bind:value={runAt} />
+				</label>
+				<label class="flex flex-col gap-1">
+					<span class="text-xs font-medium text-base-content/60">Kulanz (min)</span>
+					<input
+						type="number"
+						min="0"
+						class="input input-bordered input-sm w-24"
+						bind:value={graceMinutes}
+					/>
+				</label>
+				<button class="btn btn-outline btn-sm" disabled={!canSchedule} onclick={doSchedule}>
+					{scheduling ? 'plant …' : '🕒 Terminieren'}
+				</button>
+			</div>
+			<p class="mt-1 text-xs text-base-content/50">
+				Du bekommst eine E-Mail bei der Bestätigung und nach der Ausführung. Erfordert einen
+				hinterlegten GitLab-Token.
+			</p>
+			{#if scheduleError}
+				<div class="mt-2 alert alert-error">
+					<span class="font-mono text-sm break-words whitespace-pre-wrap">{scheduleError}</span>
+				</div>
+			{/if}
+			{#if scheduled}
+				<div class="mt-2 alert alert-success">
+					<span class="text-sm">
+						Geplant. <a class="link" href="/jobs">Zu den geplanten Jobs →</a>
+					</span>
+				</div>
+			{/if}
 		</section>
 	{/if}
 

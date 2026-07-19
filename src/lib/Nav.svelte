@@ -60,6 +60,14 @@
 				Kurse
 			</a>
 			<a
+				href="/jobs"
+				class="btn btn-ghost btn-sm rounded-full font-medium {page.url.pathname.startsWith('/jobs')
+					? 'bg-primary/10 text-primary'
+					: 'text-base-content/70'}"
+			>
+				Jobs
+			</a>
+			<a
 				href="/token"
 				class="btn btn-ghost btn-sm rounded-full font-medium {page.url.pathname.startsWith('/token')
 					? 'bg-primary/10 text-primary'
