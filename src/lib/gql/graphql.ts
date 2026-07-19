@@ -52,6 +52,7 @@ export type LogLevel =
 export type Op =
   | 'ARCHIVE'
   | 'DELETE'
+  | 'GENERATE'
   | 'PROTECT'
   | 'SETACCESS';
 

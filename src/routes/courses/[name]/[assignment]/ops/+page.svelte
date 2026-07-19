@@ -7,9 +7,14 @@
 	let { data }: { data: PageData } = $props();
 
 	type Plan = PlanOpMutation['planOp'];
-	type OpValue = 'SETACCESS' | 'PROTECT' | 'ARCHIVE' | 'DELETE';
+	type OpValue = 'SETACCESS' | 'PROTECT' | 'ARCHIVE' | 'DELETE' | 'GENERATE';
 
 	const OPS: { value: OpValue; label: string; desc: string }[] = [
+		{
+			value: 'GENERATE',
+			label: 'Generate',
+			desc: 'Repos anlegen, Startercode pushen, Studierende/Gruppen einladen'
+		},
 		{ value: 'SETACCESS', label: 'Set Access', desc: 'Zugriffsstufe der Repos setzen' },
 		{ value: 'PROTECT', label: 'Protect', desc: 'Branch in den Repos schützen' },
 		{ value: 'ARCHIVE', label: 'Archive', desc: 'Repos archivieren' },
@@ -240,6 +245,11 @@
 					<input type="checkbox" class="toggle toggle-sm" bind:checked={unarchive} />
 					Entarchivieren statt archivieren
 				</label>
+			{:else if selectedOp === 'GENERATE'}
+				<p class="text-xs text-base-content/60">
+					Legt fehlende Repos an, pusht den Startercode und lädt Studierende/Gruppen ein. Bestehende
+					Repos werden übersprungen. Der Plan zeigt die betroffenen Repos vorab.
+				</p>
 			{/if}
 			<button class="btn btn-primary btn-sm" disabled={planning} onclick={doPlan}>
 				{planning ? 'plant …' : 'Planen'}
