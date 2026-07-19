@@ -83,6 +83,12 @@ export const load: PageServerLoad = async ({ params }) => {
 							url
 						}
 					}
+					assignmentActivity(course: $course, name: $name) {
+						op
+						status
+						detail
+						at
+					}
 				}
 			`),
 			{ course, name: assignment }
@@ -108,6 +114,7 @@ export const load: PageServerLoad = async ({ params }) => {
 					resolveError: null
 				},
 				urls: null,
+				activity: [],
 				isNew: true
 			};
 		}
@@ -118,6 +125,7 @@ export const load: PageServerLoad = async ({ params }) => {
 			ruleSchema: d.approvalRuleSchema ?? [],
 			assignment: d.assignment,
 			urls: d.assignmentUrls ?? null,
+			activity: d.assignmentActivity ?? [],
 			isNew: false
 		};
 	} catch (e) {
