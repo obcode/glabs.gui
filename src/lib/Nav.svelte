@@ -68,6 +68,16 @@
 				Jobs
 			</a>
 			<a
+				href="/activity"
+				class="btn btn-ghost btn-sm rounded-full font-medium {page.url.pathname.startsWith(
+					'/activity'
+				)
+					? 'bg-primary/10 text-primary'
+					: 'text-base-content/70'}"
+			>
+				Aktivität
+			</a>
+			<a
 				href="/token"
 				class="btn btn-ghost btn-sm rounded-full font-medium {page.url.pathname.startsWith('/token')
 					? 'bg-primary/10 text-primary'
