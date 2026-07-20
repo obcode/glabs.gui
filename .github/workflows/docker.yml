@@ -63,5 +63,27 @@ jobs:
           build-args: |
             APP_VERSION=${{ env.VERSION }}
 
-  # Der Deploy-Job (Self-hosted-Runner, on-host docker-compose) kommt mit
-  # Meilenstein F (deploy/), zusammen mit Caddyfile + docker-compose.yml.
+  # Roll the freshly pushed GUI image onto the deploy host. Mirror image of the backend
+  # (obcode/glabs) deploy job: same self-hosted runner label (glabs-deploy), same on-host
+  # deploy dir — but this job touches ONLY the `gui` service. The docker-compose.yml itself
+  # is synced by the backend repo's deploy job; here we just pin GUI_TAG and roll gui.
+  deploy:
+    needs: build-and-push-image
+    # Gate like the backend: only deploy once the GUI runner exists (repo variable
+    # AUTO_DEPLOY=true). Until then the image is still built & pushed; this job is skipped.
+    if: ${{ vars.AUTO_DEPLOY == 'true' }}
+    runs-on: [self-hosted, glabs-deploy]
+    env:
+      # The v-prefixed release tag (from whichever trigger fired). docker/metadata-action
+      # tags the image with this raw ref (v1.53.0), so GUI_TAG must carry the v too.
+      VERSION: ${{ github.event.release.tag_name || inputs.tag }}
+      DEPLOY_DIR: ${{ vars.DEPLOY_DIR || '/home/glabs/glabs/deploy' }}
+    steps:
+      - name: Deploy pinned GUI image
+        run: |
+          set -euo pipefail
+          cd "$DEPLOY_DIR"
+          sed -i "s/^GUI_TAG=.*/GUI_TAG=$VERSION/" .env
+          docker compose pull gui
+          docker compose up -d gui
+          docker image prune -f
