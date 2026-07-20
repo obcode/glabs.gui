@@ -21,7 +21,6 @@ export const load: PageServerLoad = async ({ params }) => {
 						lastName
 						gender
 						group
-						mtknr
 					}
 				}
 			`),

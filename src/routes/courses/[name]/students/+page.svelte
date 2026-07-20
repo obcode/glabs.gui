@@ -34,9 +34,8 @@
 				<thead>
 					<tr>
 						<th>Name</th>
-						<th>Gruppe</th>
 						<th>Geschl.</th>
-						<th>Matrikel</th>
+						<th>Gruppe</th>
 						<th>E-Mail</th>
 					</tr>
 				</thead>
@@ -44,9 +43,8 @@
 					{#each students as s (s.email)}
 						<tr class={s.found ? '' : 'opacity-60'}>
 							<td class="font-medium">{fullName(s) || '—'}</td>
-							<td>{s.group || '—'}</td>
 							<td>{s.gender || '—'}</td>
-							<td class="font-mono text-xs">{s.mtknr || '—'}</td>
+							<td>{s.group || '—'}</td>
 							<td class="font-mono text-xs break-all">{s.email}</td>
 						</tr>
 					{/each}
