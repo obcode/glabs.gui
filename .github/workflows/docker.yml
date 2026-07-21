@@ -34,6 +34,14 @@ jobs:
           # Build the released code, not whatever is on main now.
           ref: ${{ github.event.release.tag_name || inputs.tag }}
 
+      # Build with the docker-container driver, not the default `docker` driver.
+      # The default driver's direct push to ghcr.io intermittently fails with
+      # "ERROR: unknown blob" (the image builds fine, but the push references
+      # blobs the registry session doesn't have). buildx + docker-container
+      # uploads layers cleanly.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Log in to the Container registry
         uses: docker/login-action@v4
         with:
