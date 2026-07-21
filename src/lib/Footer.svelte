@@ -17,27 +17,8 @@
 
 	let { guiVersion, buildTime, serverInfo = null }: Props = $props();
 
-	/**
-	 * Build-/Release-Zeitpunkt fürs Footer formatieren — immer Datum + Uhrzeit.
-	 * Feste Zeitzone/Locale, damit SSR und Client identisch rendern.
-	 */
-	function formatBuildTime(iso: string | null | undefined) {
-		if (!iso) return null;
-		const d = new Date(iso);
-		if (isNaN(d.getTime())) return null;
-		return new Intl.DateTimeFormat('de-DE', {
-			day: '2-digit',
-			month: '2-digit',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit',
-			timeZone: 'Europe/Berlin'
-		}).format(d);
-	}
-
 	const guiDisplay = $derived(display(guiVersion));
 	const guiExact = $derived(isExactTag(guiVersion));
-	const buildDisplay = $derived(formatBuildTime(buildTime));
 	// Immer aufs zugehörige GitHub-Release verlinken: bei sauberem Tag auf genau
 	// dieses, bei dev-Builds auf das zugrunde liegende Release; ist gar kein Tag
 	// erkennbar, auf die Releases-Übersicht.
@@ -56,10 +37,6 @@
 	const serverReleaseTag = $derived(serverIsDev ? null : baseReleaseTag(serverInfo?.version));
 	const serverReleaseURL = $derived(
 		serverReleaseTag ? `https://github.com/obcode/glabs/releases/tag/${serverReleaseTag}` : null
-	);
-	// Release-/Build-Zeitpunkt des Backends; „unknown" = dev-Build → nichts anzeigen.
-	const serverDateDisplay = $derived(
-		serverInfo?.date && serverInfo.date !== 'unknown' ? formatBuildTime(serverInfo.date) : null
 	);
 
 	// Copyright-Jahr aus der Build-Zeit ableiten (SSR- und Client-deterministisch),
@@ -85,9 +62,6 @@
 			{#if !guiExact}
 				<span class="opacity-70">(dev)</span>
 			{/if}
-			{#if buildDisplay}
-				<span class="opacity-70">— {buildDisplay}</span>
-			{/if}
 		</span>
 	{/if}
 
@@ -102,9 +76,6 @@
 				</a>
 			{:else}
 				<span title={serverInfo?.commit ?? undefined}>{serverDisplay}</span>
-			{/if}
-			{#if serverDateDisplay}
-				<span class="opacity-70">— {serverDateDisplay}</span>
 			{/if}
 		</span>
 	{/if}
