@@ -85,6 +85,18 @@
 			>
 				GitLab-Token
 			</a>
+			{#if me?.isAdmin}
+				<a
+					href="/admin"
+					class="btn btn-ghost btn-sm rounded-full font-medium {page.url.pathname.startsWith(
+						'/admin'
+					)
+						? 'bg-primary/10 text-primary'
+						: 'text-base-content/70'}"
+				>
+					Admin
+				</a>
+			{/if}
 		</nav>
 
 		<div class="flex-1"></div>

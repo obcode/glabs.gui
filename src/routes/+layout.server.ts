@@ -23,6 +23,7 @@ export const load: LayoutServerLoad = async () => {
 					me {
 						email
 						name
+						isAdmin
 					}
 				}
 			`)
