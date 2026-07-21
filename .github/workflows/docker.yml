@@ -85,7 +85,7 @@ jobs:
       # The v-prefixed release tag (from whichever trigger fired). docker/metadata-action
       # tags the image with this raw ref (v1.53.0), so GUI_TAG must carry the v too.
       VERSION: ${{ github.event.release.tag_name || inputs.tag }}
-      DEPLOY_DIR: ${{ vars.DEPLOY_DIR || '/home/glabs/glabs/deploy' }}
+      DEPLOY_DIR: ${{ vars.DEPLOY_DIR || '/home/obraun/glabs/deploy' }}
     steps:
       - name: Deploy pinned GUI image
         run: |
