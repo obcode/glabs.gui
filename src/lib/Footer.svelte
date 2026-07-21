@@ -61,6 +61,15 @@
 	const serverDateDisplay = $derived(
 		serverInfo?.date && serverInfo.date !== 'unknown' ? formatBuildTime(serverInfo.date) : null
 	);
+
+	// Copyright-Jahr aus der Build-Zeit ableiten (SSR- und Client-deterministisch),
+	// Fallback auf ein festes Jahr, falls keine gültige Build-Zeit vorliegt.
+	function yearOf(iso: string | null | undefined) {
+		if (!iso) return null;
+		const d = new Date(iso);
+		return isNaN(d.getTime()) ? null : d.getUTCFullYear();
+	}
+	const copyrightYear = $derived(yearOf(buildTime) ?? 2026);
 </script>
 
 <footer
@@ -99,4 +108,12 @@
 			{/if}
 		</span>
 	{/if}
+
+	<!-- Copyright ans Ende, per ml-auto rechts abgesetzt -->
+	<span class="ml-auto">
+		© {copyrightYear}
+		<a class="link link-hover" href="https://github.com/obcode" target="_blank" rel="noopener">
+			Oliver Braun
+		</a>
+	</span>
 </footer>
