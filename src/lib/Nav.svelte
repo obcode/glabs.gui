@@ -11,6 +11,17 @@
 	let me = $derived(page.data?.me ?? null);
 	let meName = $derived(displayName(me));
 
+	// Navigationsziele an einer Stelle — Mobil-Dropdown und Desktop-Leiste teilen
+	// sie, damit beide Varianten nicht auseinanderlaufen.
+	let navLinks = $derived([
+		{ href: '/courses', label: 'Kurse' },
+		{ href: '/jobs', label: 'Jobs' },
+		{ href: '/activity', label: 'Aktivität' },
+		{ href: '/token', label: 'GitLab-Token' },
+		...(me?.isAdmin ? [{ href: '/admin', label: 'Admin' }] : [])
+	]);
+	const isActive = (href: string) => page.url.pathname.startsWith(href);
+
 	// aktuell aktives Theme (von theme-change als data-theme am <html> gesetzt),
 	// damit der Umschalter es anzeigen und im Dropdown markieren kann.
 	let currentTheme = $state('');
@@ -33,6 +44,45 @@
 	class="sticky top-0 z-50 border-b border-base-300/60 bg-base-100/80 backdrop-blur-md supports-[backdrop-filter]:bg-base-100/70"
 >
 	<div class="mx-auto flex h-16 items-center gap-2 px-2 sm:px-3">
+		<!-- Mobiles Menü (< md): Hamburger-Dropdown mit denselben Zielen wie die
+		     Desktop-Leiste. Ab md wird stattdessen die horizontale Leiste gezeigt. -->
+		<div class="dropdown md:hidden">
+			<div
+				tabindex="0"
+				role="button"
+				class="btn btn-ghost btn-sm px-2"
+				aria-label="Navigation öffnen"
+			>
+				<svg
+					class="h-5 w-5"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+					stroke-width="1.6"
+				>
+					<path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+				</svg>
+			</div>
+			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+			<ul
+				tabindex="0"
+				class="menu dropdown-content z-50 mt-3 w-52 gap-0.5 rounded-2xl border border-base-200 bg-base-100 p-2 shadow-xl"
+			>
+				{#each navLinks as link (link.href)}
+					<li>
+						<a
+							href={link.href}
+							class="rounded-lg font-medium {isActive(link.href)
+								? 'bg-primary/10 text-primary'
+								: ''}"
+						>
+							{link.label}
+						</a>
+					</li>
+				{/each}
+			</ul>
+		</div>
+
 		<!-- Brand -->
 		<a href="/" class="group flex items-center gap-2 rounded-xl px-1 py-1">
 			<span
@@ -47,56 +97,18 @@
 			</span>
 		</a>
 
-		<!-- Hauptnavigation -->
-		<nav class="ml-2 flex items-center gap-0.5">
-			<a
-				href="/courses"
-				class="btn btn-ghost btn-sm rounded-full font-medium {page.url.pathname.startsWith(
-					'/courses'
-				)
-					? 'bg-primary/10 text-primary'
-					: 'text-base-content/70'}"
-			>
-				Kurse
-			</a>
-			<a
-				href="/jobs"
-				class="btn btn-ghost btn-sm rounded-full font-medium {page.url.pathname.startsWith('/jobs')
-					? 'bg-primary/10 text-primary'
-					: 'text-base-content/70'}"
-			>
-				Jobs
-			</a>
-			<a
-				href="/activity"
-				class="btn btn-ghost btn-sm rounded-full font-medium {page.url.pathname.startsWith(
-					'/activity'
-				)
-					? 'bg-primary/10 text-primary'
-					: 'text-base-content/70'}"
-			>
-				Aktivität
-			</a>
-			<a
-				href="/token"
-				class="btn btn-ghost btn-sm rounded-full font-medium {page.url.pathname.startsWith('/token')
-					? 'bg-primary/10 text-primary'
-					: 'text-base-content/70'}"
-			>
-				GitLab-Token
-			</a>
-			{#if me?.isAdmin}
+		<!-- Hauptnavigation (ab md; auf schmalen Screens ersetzt durch das Hamburger-Menü) -->
+		<nav class="ml-2 hidden items-center gap-0.5 md:flex">
+			{#each navLinks as link (link.href)}
 				<a
-					href="/admin"
-					class="btn btn-ghost btn-sm rounded-full font-medium {page.url.pathname.startsWith(
-						'/admin'
-					)
+					href={link.href}
+					class="btn btn-ghost btn-sm rounded-full font-medium {isActive(link.href)
 						? 'bg-primary/10 text-primary'
 						: 'text-base-content/70'}"
 				>
-					Admin
+					{link.label}
 				</a>
-			{/if}
+			{/each}
 		</nav>
 
 		<div class="flex-1"></div>
