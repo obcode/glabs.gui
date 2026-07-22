@@ -209,13 +209,6 @@
 			</a>
 			<a
 				class="btn btn-outline btn-sm"
-				href="/courses/{encodeURIComponent(course.name)}/students"
-				title="Studierende mit ZPA-Details (Name, Gruppe, …)"
-			>
-				👥 Studierende
-			</a>
-			<a
-				class="btn btn-outline btn-sm"
 				href="/courses/{encodeURIComponent(course.name)}/repos"
 				title="Übersicht der generierten Repos (GitLab-Token nötig)"
 			>
