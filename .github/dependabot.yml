@@ -7,6 +7,13 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
+    # pnpm 11 lehnt beim `install --frozen-lockfile` Pakete ab, die jünger als
+    # ~24h sind (minimumReleaseAge, Supply-Chain-Schutz). Dependabot griff bisher
+    # die brandneuen Versionen und lief regelmäßig in dieses Gate (CI rot, bis das
+    # Paket alt genug war). Der cooldown lässt Dependabot nur Versionen vorschlagen,
+    # die schon ein paar Tage alt sind — damit trifft die 24h-Sperre nie mehr zu.
+    cooldown:
+      default-days: 3
     groups:
       # Svelte-Ökosystem zusammen (Kit/vite-plugin/svelte müssen kompatibel sein)
       svelte:
