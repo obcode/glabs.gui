@@ -2,5 +2,9 @@
 # Native Postinstall-Builds sind aus Sicherheitsgründen standardmäßig blockiert;
 # hier werden die für Vite/Tailwind nötigen Pakete explizit erlaubt.
 allowBuilds:
+  # false: das Postinstall lädt nur das sentry-cli-Binary, das Source-Maps hochlädt — hier
+  # nicht gemacht. GlitchTip nimmt keine Uploads an und käme hinter dem Auth-Proxy auch nicht
+  # an abholbare Dateien. @sentry/sveltekit funktioniert vollständig ohne.
+  '@sentry/cli': false
   '@tailwindcss/oxide': true
   esbuild: true
