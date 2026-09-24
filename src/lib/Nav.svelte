@@ -13,14 +13,28 @@
 
 	// Navigationsziele an einer Stelle — Mobil-Dropdown und Desktop-Leiste teilen
 	// sie, damit beide Varianten nicht auseinanderlaufen.
-	let navLinks = $derived([
-		{ href: '/courses', label: 'Kurse' },
-		{ href: '/jobs', label: 'Jobs' },
-		{ href: '/activity', label: 'Aktivität' },
-		{ href: '/token', label: 'GitLab-Token' },
-		...(me?.isAdmin ? [{ href: '/admin', label: 'Admin' }] : [])
-	]);
-	const isActive = (href: string) => page.url.pathname.startsWith(href);
+	// Nicht Freigeschaltete sehen keine Ziele: jedes würde sie nur auf /zugang
+	// zurückschicken. `me = null` (Backend nicht erreichbar) zeigt sie weiterhin.
+	let approved = $derived(!me || me.access === 'APPROVED');
+	let navLinks = $derived(
+		approved
+			? [
+					{ href: '/courses', label: 'Kurse' },
+					{ href: '/jobs', label: 'Jobs' },
+					{ href: '/activity', label: 'Aktivität' },
+					{ href: '/token', label: 'GitLab-Token' },
+					...(me?.isAdmin
+						? [
+								{ href: '/admin', label: 'Admin' },
+								{ href: '/admin/access', label: 'Freischaltungen' }
+							]
+						: [])
+				]
+			: []
+	);
+	// /admin darf nicht mit aufleuchten, wenn /admin/access aktiv ist.
+	const isActive = (href: string) =>
+		href === '/admin' ? page.url.pathname === '/admin' : page.url.pathname.startsWith(href);
 
 	// aktuell aktives Theme (von theme-change als data-theme am <html> gesetzt),
 	// damit der Umschalter es anzeigen und im Dropdown markieren kann.

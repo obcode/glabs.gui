@@ -52,7 +52,12 @@
 		'course-created': 'Kurs angelegt',
 		'course-deleted': 'Kurs gelöscht',
 		'token-saved': 'Token gespeichert',
-		'token-deleted': 'Token gelöscht'
+		'token-deleted': 'Token gelöscht',
+		'access-requested': 'Freischaltung angefragt',
+		'access-granted': 'Freigeschaltet',
+		'access-rejected': 'Anfrage abgelehnt',
+		'access-revoked': 'Zugang entzogen',
+		'access-reset': 'Freischaltung zurückgesetzt'
 	};
 
 	function courseRef(course?: string | null, assignment?: string | null): string {
