@@ -145,4 +145,4 @@ authentifizierten Principal, nie aus einem GraphQL-Argument.
 - `schema.graphql` / `codegen.ts` / `scripts/pull-schema.mjs` — Codegen-Setup (siehe „GraphQL & Typen")
 - `static/` — unverändert ausgelieferte Assets
 - `src/app.css` — Tailwind/daisyUI-Konfiguration
-- `src/hooks.server.ts` — Auth-Gate (Zugangs-Riegel gegen die Backend-Allowlist)
+- `src/hooks.server.ts` — Identität weiterreichen + Zugangs-Riegel: Nicht-Freigeschaltete landen auf `/zugang` (Logik in `src/lib/server/accessGate.ts`; nur Führung, gesperrt wird im Backend). Freischalten auf `/admin/access`

@@ -24,13 +24,14 @@ export const load: LayoutServerLoad = async () => {
 						email
 						name
 						isAdmin
+						access
 					}
 				}
 			`)
 		);
 		me = d?.me ?? null;
 	} catch {
-		// Backend down oder Kennung nicht freigeschaltet → me bleibt null.
+		// Backend down → me bleibt null.
 	}
 
 	let serverInfo = null;

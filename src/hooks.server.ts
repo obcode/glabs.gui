@@ -1,8 +1,10 @@
+import { json, redirect } from '@sveltejs/kit';
 import type { Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import * as Sentry from '@sentry/sveltekit';
 import { env } from '$env/dynamic/private';
 import { authContext } from '$lib/server/backend';
+import { ACCESS_PAGE, accessOf, gateDecision, isOpenPath } from '$lib/server/accessGate';
 
 /**
  * Fehler des SSR-Node-Prozesses an GlitchTip melden (Projekt `glabs-gui`, dasselbe wie im
@@ -37,15 +39,29 @@ const guiHandle: Handle = async ({ event, resolve }) => {
 	// glabs-web weiterreicht — siehe $lib/server/backend. Bei glabs ist die
 	// Kennung zugleich die E-Mail-Adresse.
 	//
-	// Es gibt keinen Zugangs-Riegel mehr: glabs-web hat keine Allowlist, jede vom
-	// Proxy authentifizierte Kennung (auf hm.edu eingeschränkt) ist zugelassen und
-	// arbeitet strikt als eigener Nutzer. Der Proxy ist die Zugangsgrenze.
+	// Angemeldet heißt nicht freigeschaltet: Wer nicht freigeschaltet ist, landet auf
+	// /zugang und kann dort die Freischaltung anfragen (siehe $lib/server/accessGate).
+	// Der Riegel hier ist nur Führung — gesperrt wird im Backend.
 	const remoteUser = event.request.headers.get('x-remote-user') || undefined;
 	const remoteDisplayname = event.request.headers.get('x-remote-displayname') || undefined;
 	event.locals.remoteUser = remoteUser;
 	event.locals.remoteDisplayname = remoteDisplayname;
 
-	return authContext.run({ remoteUser, remoteDisplayname }, () => resolve(event));
+	return authContext.run({ remoteUser, remoteDisplayname }, async () => {
+		const { pathname } = event.url;
+		// Offene Pfade fragen das Backend gar nicht erst (v. a. /healthz/gui).
+		if (!isOpenPath(pathname)) {
+			const decision = gateDecision(pathname, await accessOf(remoteUser));
+			if (decision === 'deny') {
+				return json(
+					{ error: 'Nicht freigeschaltet — bitte zuerst die Freischaltung anfragen.' },
+					{ status: 403 }
+				);
+			}
+			if (decision === 'redirect') redirect(303, ACCESS_PAGE);
+		}
+		return resolve(event);
+	});
 };
 
 /**
