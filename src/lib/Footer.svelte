@@ -80,8 +80,20 @@
 		</span>
 	{/if}
 
-	<!-- Copyright ans Ende, per ml-auto rechts abgesetzt -->
+	<!-- Legal notice and privacy policy of the university, right-aligned via ml-auto -->
 	<span class="ml-auto">
+		<a class="link link-hover" href="https://hm.edu/impressum/" target="_blank" rel="noopener">
+			Impressum
+		</a>
+	</span>
+	<span aria-hidden="true">·</span>
+	<span>
+		<a class="link link-hover" href="https://hm.edu/datenschutz/" target="_blank" rel="noopener">
+			Datenschutz
+		</a>
+	</span>
+	<span aria-hidden="true">·</span>
+	<span>
 		© {copyrightYear}
 		<a class="link link-hover" href="https://github.com/obcode" target="_blank" rel="noopener">
 			Oliver Braun
