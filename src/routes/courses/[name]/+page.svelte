@@ -483,8 +483,8 @@
 		<div class="modal-box">
 			<h2 class="text-lg font-semibold">Kurs löschen?</h2>
 			<p class="mt-2 text-sm">
-				Der Kurs <span class="font-mono font-semibold">{course.name}</span> wird endgültig aus deiner
-				glabs-web-Datenbank entfernt. Lade vorher das YAML herunter, wenn du es behalten möchtest.
+				Der Kurs <span class="font-mono font-semibold">{course.name}</span> wird endgültig aus Ihrer glabs-web-Datenbank
+				entfernt. Laden Sie vorher das YAML herunter, wenn Sie es behalten möchten.
 			</p>
 			<div class="modal-action">
 				<button class="btn btn-ghost btn-sm" onclick={() => (confirmOpen = false)}>Abbrechen</button

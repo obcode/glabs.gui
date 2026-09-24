@@ -98,7 +98,7 @@
 		<div>
 			<h1 class="text-2xl font-bold">Kurse</h1>
 			<p class="mt-1 text-sm text-base-content/60">
-				Nur deine eigenen Kurse — jede Kennung sieht ausschließlich die ihren.
+				Nur Ihre eigenen Kurse — jede Kennung sieht ausschließlich die ihren.
 			</p>
 		</div>
 		<div class="flex flex-col items-end gap-1">
@@ -184,7 +184,7 @@
 		<div class="modal-box">
 			<h2 class="text-lg font-semibold">Neuen Kurs anlegen</h2>
 			<p class="mt-1 text-sm text-base-content/60">
-				Legt einen leeren Kurs an. Assignments fügst du danach im Kurs hinzu.
+				Legt einen leeren Kurs an. Assignments fügen Sie danach im Kurs hinzu.
 			</p>
 			<form
 				class="mt-3 flex flex-col gap-3"

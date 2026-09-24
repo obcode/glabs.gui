@@ -30,8 +30,8 @@
 
 	{#if entries.length === 0}
 		<p class="mt-6 text-sm text-base-content/50">
-			Noch keine Web-Vorgänge protokolliert. Sobald du über die Oberfläche eine Operation
-			(setaccess, generate, …) ausführst, erscheint sie hier.
+			Noch keine Web-Vorgänge protokolliert. Sobald Sie über die Oberfläche eine Operation
+			(setaccess, generate, …) ausführen, erscheint sie hier.
 		</p>
 	{:else}
 		<div class="mt-6 overflow-x-auto">

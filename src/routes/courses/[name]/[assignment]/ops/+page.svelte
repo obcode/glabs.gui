@@ -394,7 +394,7 @@
 				{running ? 'läuft …' : '▶ Ausführen'}
 			</button>
 			<p class="mt-1 text-xs text-base-content/50">
-				Läuft serverseitig weiter, auch wenn du den Tab schließt.
+				Läuft serverseitig weiter, auch wenn Sie den Tab schließen.
 			</p>
 
 			<div class="divider text-xs text-base-content/40">oder terminieren</div>
@@ -417,7 +417,7 @@
 				</button>
 			</div>
 			<p class="mt-1 text-xs text-base-content/50">
-				Du bekommst eine E-Mail bei der Bestätigung und nach der Ausführung. Erfordert einen
+				Sie erhalten eine E-Mail bei der Bestätigung und nach der Ausführung. Erfordert einen
 				hinterlegten GitLab-Token.
 			</p>
 			{#if scheduleError}

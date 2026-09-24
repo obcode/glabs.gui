@@ -23,8 +23,8 @@
 <div class="bg-warning px-3 py-2 text-sm text-warning-content sm:px-4 lg:px-8">
 	<div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2">
 		<span>
-			<strong>Vorschau:</strong> Du siehst glabs wie eine Person, die nicht freigeschaltet ist. Deine
-			Admin-Rechte ruhen so lange.
+			<strong>Vorschau:</strong> Sie sehen glabs wie eine Person, die nicht freigeschaltet ist. Ihre Admin-Rechte
+			ruhen so lange.
 		</span>
 		<button class="btn btn-sm" onclick={endPreview} disabled={ending}>Vorschau beenden</button>
 	</div>
