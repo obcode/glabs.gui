@@ -100,7 +100,7 @@
 		</div>
 		<button
 			class="btn btn-outline btn-sm"
-			title="glabs mit deiner Kennung so ansehen, als wärst du nicht freigeschaltet — zum Ausprobieren des Anfrage-Ablaufs"
+			title="glabs mit Ihrer Kennung so ansehen, als wären Sie nicht freigeschaltet — zum Ausprobieren des Anfrage-Ablaufs"
 			onclick={startPreview}
 			disabled={startingPreview}>Als nicht freigeschaltet ansehen</button
 		>

@@ -68,7 +68,7 @@
 <main class="mx-auto max-w-2xl py-8">
 	<h1 class="text-2xl font-bold">GitLab-Token</h1>
 	<p class="mt-1 text-sm text-base-content/60">
-		Dein persönlicher Access Token wird verschlüsselt (AES-256-GCM) gespeichert und nie wieder
+		Ihr persönlicher Access Token wird verschlüsselt (AES-256-GCM) gespeichert und nie wieder
 		angezeigt. Ohne Token bleibt glabs ein reiner Config-Editor; GitLab-Operationen brauchen ihn.
 	</p>
 
@@ -98,10 +98,10 @@
 	{/if}
 
 	<section class="mt-6">
-		<h2 class="text-sm font-semibold text-base-content/70">So erstellst du einen Access Token</h2>
+		<h2 class="text-sm font-semibold text-base-content/70">So erstellen Sie einen Access Token</h2>
 		<ol class="mt-2 list-decimal space-y-2 pl-5 text-sm text-base-content/80">
 			<li>
-				Öffne in GitLab die
+				Öffnen Sie in GitLab die
 				<a class="link link-primary" href={tokensUrl} target="_blank" rel="noopener">
 					Access-Token-Einstellungen
 				</a>
@@ -112,8 +112,8 @@
 				<span class="font-medium">Add new token</span>: Name z. B. <code>glabs</code>.
 			</li>
 			<li>
-				<span class="font-medium">Expiration</span>: ein Ablaufdatum ist Pflicht. Wähle es großzügig
-				(z. B. bis zum Semesterende oder länger).
+				<span class="font-medium">Expiration</span>: ein Ablaufdatum ist Pflicht. Wählen Sie es
+				großzügig (z. B. bis zum Semesterende oder länger).
 			</li>
 			<li>
 				<span class="font-medium">Scopes</span>: <code>api</code> und
@@ -122,8 +122,8 @@
 			<li>
 				<span class="font-medium">Create personal access token</span> → der Token (<code
 					>glpat-…</code
-				>) wird <span class="font-medium">nur einmal</span> angezeigt. Kopiere ihn und füge ihn unten
-				ein.
+				>) wird <span class="font-medium">nur einmal</span> angezeigt. Kopieren Sie ihn und fügen Sie
+				ihn unten ein.
 			</li>
 		</ol>
 	</section>

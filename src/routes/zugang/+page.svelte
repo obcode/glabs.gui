@@ -46,30 +46,30 @@
 				<div class="text-4xl">⏳</div>
 				<h1 class="card-title text-2xl">Anfrage ist eingegangen</h1>
 				<p>
-					Deine Anfrage auf Freischaltung für
+					Ihre Anfrage auf Freischaltung für
 					<span class="font-mono">{me?.email}</span> liegt den Administratoren vor. Sobald sie freigeschaltet
-					ist, bekommst du eine E-Mail.
+					ist, erhalten Sie eine E-Mail.
 				</p>
 			{:else if access === 'REJECTED' || access === 'REVOKED'}
 				<div class="text-4xl">🚫</div>
 				<h1 class="card-title text-2xl">Kein Zugang</h1>
 				<p>
 					{access === 'REJECTED'
-						? 'Deine Anfrage auf Freischaltung wurde nicht angenommen.'
-						: 'Dein Zugang zu glabs wurde entzogen.'}
-					Wenn du glaubst, dass das ein Irrtum ist, wende dich bitte an die Administratoren von glabs.
+						? 'Ihre Anfrage auf Freischaltung wurde nicht angenommen.'
+						: 'Ihr Zugang zu glabs wurde entzogen.'}
+					Sollte es sich um einen Irrtum handeln, wenden Sie sich bitte an die Administratoren von glabs.
 				</p>
 			{:else}
 				<div class="text-4xl">🔐</div>
 				<h1 class="card-title text-2xl">Freischaltung anfragen</h1>
 				<p>
-					Du bist als <span class="font-mono">{me?.email ?? 'unbekannt'}</span> angemeldet, aber noch
-					nicht für glabs freigeschaltet. Frag die Freischaltung an — die Administratoren bekommen eine
-					E-Mail, und du bekommst eine, sobald du freigeschaltet bist.
+					Sie sind als <span class="font-mono">{me?.email ?? 'unbekannt'}</span> angemeldet, aber noch
+					nicht für glabs freigeschaltet. Bitte fragen Sie die Freischaltung an — die Administratoren
+					erhalten eine E-Mail, und Sie erhalten eine, sobald Sie freigeschaltet sind.
 				</p>
 				<label class="form-control w-full">
 					<span class="label-text mb-1">
-						Wofür brauchst du glabs? <span class="text-base-content/60">(optional)</span>
+						Wofür möchten Sie glabs nutzen? <span class="text-base-content/60">(optional)</span>
 					</span>
 					<textarea
 						class="textarea w-full"

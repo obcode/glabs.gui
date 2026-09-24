@@ -51,8 +51,8 @@
 <main class="mx-auto max-w-4xl py-8">
 	<h1 class="text-2xl font-bold">Geplante Jobs</h1>
 	<p class="mt-1 text-xs text-base-content/50">
-		Terminierte GitLab-Operationen. Du bekommst bei jedem Endzustand eine E-Mail. Ausstehende Jobs
-		kannst du abbrechen.
+		Terminierte GitLab-Operationen. Sie erhalten bei jedem Endzustand eine E-Mail. Ausstehende Jobs
+		können Sie abbrechen.
 	</p>
 
 	{#if actionError}
@@ -63,7 +63,7 @@
 
 	{#if jobs.length === 0}
 		<p class="mt-6 text-sm text-base-content/50">
-			Noch keine geplanten Jobs. Plane eine Operation auf der Ops-Seite eines Assignments.
+			Noch keine geplanten Jobs. Planen Sie eine Operation auf der Ops-Seite eines Assignments.
 		</p>
 	{:else}
 		<div class="mt-6 flex flex-col gap-2">

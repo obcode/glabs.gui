@@ -789,8 +789,8 @@
 				</ul>
 			{:else}
 				<p class="mt-2 text-sm text-base-content/50">
-					Noch keine {urls.per === 'group' ? 'Gruppen' : 'Studierenden'} im Kurs — lege sie im Kurs unter
-					„Studierende &amp; Gruppen" an.
+					Noch keine {urls.per === 'group' ? 'Gruppen' : 'Studierenden'} im Kurs — legen Sie sie im Kurs
+					unter „Studierende &amp; Gruppen" an.
 				</p>
 			{/if}
 		</section>

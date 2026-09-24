@@ -111,8 +111,9 @@
 				<div class="font-mono break-words whitespace-pre-wrap">{errorMsg}</div>
 				{#if tokenMissing}
 					<div class="mt-2">
-						Hinterlege einen GitLab-Token unter
-						<a class="link link-primary" href="/token">GitLab-Token</a>, dann lade neu.
+						Hinterlegen Sie einen GitLab-Token unter
+						<a class="link link-primary" href="/token">GitLab-Token</a>, und laden Sie die Seite
+						neu.
 					</div>
 				{/if}
 			</div>
