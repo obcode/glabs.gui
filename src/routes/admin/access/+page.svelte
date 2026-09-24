@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { invalidateAll } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { formatDateTime } from '$lib/format';
 	import type { AccessStatus } from '$lib/gql/graphql';
 	import type { PageData } from './$types';
@@ -48,6 +48,22 @@
 		}
 	}
 
+	// Vorschau-Modus: den eigenen Anfrage-Ablauf mit der eigenen Kennung durchspielen.
+	let startingPreview = $state(false);
+	async function startPreview() {
+		startingPreview = true;
+		try {
+			await fetch('/api/access/preview', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ on: true })
+			});
+			await goto('/zugang', { invalidateAll: true });
+		} finally {
+			startingPreview = false;
+		}
+	}
+
 	const statusBadge: Record<AccessStatus, string> = {
 		NONE: 'badge-ghost',
 		PENDING: 'badge-warning',
@@ -74,11 +90,21 @@
 <svelte:head><title>Freischaltungen · glabs</title></svelte:head>
 
 <main class="mx-auto max-w-6xl py-8">
-	<h1 class="text-2xl font-bold">Admin · Freischaltungen</h1>
-	<p class="mt-1 text-xs text-base-content/50">
-		Nur die Administratoren und freigeschaltete Personen können glabs nutzen. Alle anderen sehen
-		eine Seite, auf der sie die Freischaltung anfragen können.
-	</p>
+	<div class="flex flex-wrap items-start justify-between gap-4">
+		<div>
+			<h1 class="text-2xl font-bold">Admin · Freischaltungen</h1>
+			<p class="mt-1 text-xs text-base-content/50">
+				Nur die Administratoren und freigeschaltete Personen können glabs nutzen. Alle anderen sehen
+				eine Seite, auf der sie die Freischaltung anfragen können.
+			</p>
+		</div>
+		<button
+			class="btn btn-outline btn-sm"
+			title="glabs mit deiner Kennung so ansehen, als wärst du nicht freigeschaltet — zum Ausprobieren des Anfrage-Ablaufs"
+			onclick={startPreview}
+			disabled={startingPreview}>Als nicht freigeschaltet ansehen</button
+		>
+	</div>
 
 	{#if result}
 		<div class="mt-4 alert {result.ok ? 'alert-success' : 'alert-error'} py-2 text-sm">

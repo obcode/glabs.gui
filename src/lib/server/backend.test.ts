@@ -34,6 +34,15 @@ describe('backendClient', () => {
 		});
 	});
 
+	it('schickt im Vorschau-Modus X-Glabs-Preview mit', () => {
+		authContext.run({ remoteUser: 'admin@hm.edu', preview: true }, () => {
+			backendClient();
+		});
+		expect(clientCtor).toHaveBeenCalledWith('http://test/query', {
+			headers: { 'X-Remote-User': 'admin@hm.edu', 'X-Glabs-Preview': 'unapproved' }
+		});
+	});
+
 	it('expliziter Kontext schlägt den ALS-Kontext', () => {
 		authContext.run({ remoteUser: 'als@hm.edu' }, () => {
 			backendClient({ remoteUser: 'explicit@hm.edu' });

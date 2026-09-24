@@ -24,6 +24,8 @@ import { env } from '$env/dynamic/private';
 export interface AuthContext {
 	remoteUser?: string;
 	remoteDisplayname?: string;
+	/** Vorschau-Modus: glabs-web behandelt einen Admin wie eine nicht freigeschaltete Person. */
+	preview?: boolean;
 }
 
 export const authContext = new AsyncLocalStorage<AuthContext>();
@@ -42,10 +44,11 @@ export function backendClient(ctx?: AuthContext): GraphQLClient {
 	// serverInfo = null, im Zugangs-Riegel → kein `.response` → nicht aussperren.
 	if (!url) throw new Error('GLABS_SERVER is not set — cannot reach glabs-web');
 
-	const { remoteUser, remoteDisplayname } = ctx ?? authContext.getStore() ?? {};
+	const { remoteUser, remoteDisplayname, preview } = ctx ?? authContext.getStore() ?? {};
 	const headers: Record<string, string> = {};
 	if (remoteUser) headers['X-Remote-User'] = remoteUser;
 	if (remoteDisplayname) headers['X-Remote-Displayname'] = remoteDisplayname;
+	if (preview) headers['X-Glabs-Preview'] = 'unapproved';
 	return new GraphQLClient(url, { headers });
 }
 

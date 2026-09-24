@@ -19,6 +19,7 @@ export function isOpenPath(pathname: string): boolean {
 	return (
 		pathname === ACCESS_PAGE ||
 		pathname === '/api/access/request' ||
+		pathname === '/api/access/preview' ||
 		pathname === '/healthz/gui' ||
 		pathname.startsWith('/_app/') ||
 		pathname === '/favicon.ico' ||
@@ -47,8 +48,13 @@ const cache = new Map<string, { access: AccessStatus | null; expires: number }>(
  * GUI-Server bedient alle Nutzer, ein Slot würde bei zwei gleichzeitigen ständig
  * überschrieben.
  */
-export async function accessOf(remoteUser: string | undefined): Promise<AccessStatus | null> {
-	const key = cacheKey(remoteUser);
+export async function accessOf(
+	remoteUser: string | undefined,
+	preview = false
+): Promise<AccessStatus | null> {
+	// Die Vorschau hat ihren eigenen Eintrag: derselbe Admin ist mit und ohne sie
+	// ein anderer Status.
+	const key = cacheKey(remoteUser) + (preview ? '#preview' : '');
 	const now = Date.now();
 	const hit = cache.get(key);
 	if (hit && now < hit.expires) return hit.access;
@@ -78,6 +84,7 @@ export async function accessOf(remoteUser: string | undefined): Promise<AccessSt
 /** Nach einer Anfrage oder Entscheidung: den Status dieser Kennung neu holen. */
 export function forgetAccess(remoteUser: string | undefined) {
 	cache.delete(cacheKey(remoteUser));
+	cache.delete(cacheKey(remoteUser) + '#preview');
 }
 
 /** Wie das Backend: Groß-/Kleinschreibung und Leerraum zählen nicht. */
