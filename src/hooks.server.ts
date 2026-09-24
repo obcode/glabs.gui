@@ -5,6 +5,7 @@ import * as Sentry from '@sentry/sveltekit';
 import { env } from '$env/dynamic/private';
 import { authContext } from '$lib/server/backend';
 import { ACCESS_PAGE, accessOf, gateDecision, isOpenPath } from '$lib/server/accessGate';
+import { PREVIEW_COOKIE } from '$lib/server/preview';
 
 /**
  * Fehler des SSR-Node-Prozesses an GlitchTip melden (Projekt `glabs-gui`, dasselbe wie im
@@ -46,12 +47,16 @@ const guiHandle: Handle = async ({ event, resolve }) => {
 	const remoteDisplayname = event.request.headers.get('x-remote-displayname') || undefined;
 	event.locals.remoteUser = remoteUser;
 	event.locals.remoteDisplayname = remoteDisplayname;
+	// Nur Rechte weg, nie dazu: der Cookie kann also von jedem gesetzt werden,
+	// ohne dass es etwas öffnet (siehe $lib/server/preview).
+	const preview = event.cookies.get(PREVIEW_COOKIE) === '1';
+	event.locals.preview = preview;
 
-	return authContext.run({ remoteUser, remoteDisplayname }, async () => {
+	return authContext.run({ remoteUser, remoteDisplayname, preview }, async () => {
 		const { pathname } = event.url;
 		// Offene Pfade fragen das Backend gar nicht erst (v. a. /healthz/gui).
 		if (!isOpenPath(pathname)) {
-			const decision = gateDecision(pathname, await accessOf(remoteUser));
+			const decision = gateDecision(pathname, await accessOf(remoteUser, preview));
 			if (decision === 'deny') {
 				return json(
 					{ error: 'Nicht freigeschaltet — bitte zuerst die Freischaltung anfragen.' },

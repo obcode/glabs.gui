@@ -37,6 +37,7 @@ describe('isOpenPath', () => {
 		expect(isOpenPath('/zugang/../courses')).toBe(false);
 		expect(isOpenPath('/api/access/requestX')).toBe(false);
 		expect(isOpenPath('/api/admin/access/approve')).toBe(false);
+		expect(isOpenPath('/api/access/preview')).toBe(true);
 	});
 });
 
@@ -72,5 +73,25 @@ describe('accessOf', () => {
 		expect(await accessOf('a@hm.edu')).toBeNull();
 		backendRequest.mockResolvedValue({ me: { access: 'APPROVED' } });
 		expect(await accessOf('a@hm.edu')).toBe('APPROVED');
+	});
+});
+
+describe('accessOf mit Vorschau', () => {
+	beforeEach(() => {
+		backendRequest.mockReset();
+		forgetAccess('admin@hm.edu');
+	});
+
+	it('hält Vorschau und Normalbetrieb getrennt und vergisst beide', async () => {
+		backendRequest.mockResolvedValueOnce({ me: { access: 'APPROVED' } });
+		backendRequest.mockResolvedValueOnce({ me: { access: 'NONE' } });
+		expect(await accessOf('admin@hm.edu')).toBe('APPROVED');
+		expect(await accessOf('admin@hm.edu', true)).toBe('NONE');
+		expect(await accessOf('admin@hm.edu')).toBe('APPROVED');
+		expect(backendRequest).toHaveBeenCalledTimes(2);
+
+		forgetAccess('admin@hm.edu');
+		backendRequest.mockResolvedValue({ me: { access: 'PENDING' } });
+		expect(await accessOf('admin@hm.edu', true)).toBe('PENDING');
 	});
 });

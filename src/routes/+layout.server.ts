@@ -14,7 +14,7 @@ import type { LayoutServerLoad } from './$types';
  *
  * `guiVersion`/`buildTime` sind Vite-`define`-Konstanten (Buildzeit).
  */
-export const load: LayoutServerLoad = async () => {
+export const load: LayoutServerLoad = async ({ locals }) => {
 	let me = null;
 	try {
 		const d = await backendRequest(
@@ -54,6 +54,7 @@ export const load: LayoutServerLoad = async () => {
 
 	return {
 		me,
+		preview: locals.preview,
 		serverInfo,
 		guiVersion: __APP_VERSION__,
 		buildTime: __BUILD_TIME__
