@@ -27,6 +27,7 @@
 		kind: string;
 		required: boolean;
 		example?: string | null;
+		options?: FieldOption[] | null;
 	};
 	type FieldValue = { key: string; value: string };
 	type Draft = FieldValue[];
@@ -602,6 +603,17 @@
 											<input type="checkbox" class="toggle toggle-sm" bind:checked={row[f.key]} />
 											<span>{f.label}</span>
 											<span class="text-xs text-base-content/50">— {f.description}</span>
+										</label>
+									{:else if f.kind === 'ENUM'}
+										<label class="flex flex-col gap-1">
+											<span class="text-sm font-medium">{f.label}</span>
+											<span class="text-xs text-base-content/60">{f.description}</span>
+											<select class="select select-bordered select-sm" bind:value={row[f.key]}>
+												<option value="">— nicht gesetzt —</option>
+												{#each f.options ?? [] as opt (opt.value)}
+													<option value={opt.value} title={opt.description}>{opt.label}</option>
+												{/each}
+											</select>
 										</label>
 									{:else}
 										<label class="flex flex-col gap-1">

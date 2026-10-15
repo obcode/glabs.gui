@@ -40,6 +40,11 @@ export const load: PageServerLoad = async ({ params }) => {
 						kind
 						required
 						example
+						options {
+							value
+							label
+							description
+						}
 					}
 					approvalSettingsSchema {
 						key
