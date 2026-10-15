@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { invalidateAll, goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import { formatDateTime } from '$lib/format';
 	import RosterEditor from '$lib/RosterEditor.svelte';
 	import type { PageData } from './$types';
@@ -8,6 +9,10 @@
 
 	let course = $derived(data.course);
 	let lint = $derived(data.lint ?? []);
+	// Befunde, bei denen eine Einstellung keine Wirkung hat — die verdienen einen
+	// Hinweis oben auf der Seite, nicht nur einen Eintrag ganz unten.
+	let problemCount = $derived(lint.filter((f) => f.severity === 'PROBLEM').length);
+	let justImported = $derived(page.url.searchParams.has('importiert'));
 
 	// Aktivitäts-Log (newest-first) → jüngster Eintrag pro Assignment für die
 	// Status-Anzeige auf der Assignment-Card.
@@ -237,6 +242,18 @@
 		</div>
 	{/if}
 
+	{#if problemCount > 0}
+		<div class="mt-4 alert alert-warning" role="status">
+			<span class="text-sm">
+				{justImported ? 'Der Kurs wurde importiert, enthält aber' : 'Diese Konfiguration enthält'}
+				{problemCount === 1 ? 'eine Einstellung' : `${problemCount} Einstellungen`} ohne Wirkung — glabs
+				ignoriert sie. Bitte prüfen Sie die
+				<a href="#lint" class="link font-semibold">Lint-Befunde</a>, bevor Sie Operationen
+				ausführen.
+			</span>
+		</div>
+	{/if}
+
 	<div class="mt-6 grid gap-4 sm:grid-cols-3">
 		<div class="stat rounded-2xl border border-base-200">
 			<div class="stat-title">Assignments</div>
@@ -341,7 +358,7 @@
 		</details>
 	</section>
 
-	<section class="mt-6">
+	<section id="lint" class="mt-6 scroll-mt-20">
 		<h2 class="text-sm font-semibold text-base-content/70">Lint ({lint.length})</h2>
 		{#if lint.length === 0}
 			<p class="mt-2 text-sm text-success">✓ Keine Befunde.</p>

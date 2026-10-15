@@ -81,7 +81,13 @@
 			}
 			await invalidateAll();
 			const name = d?.importCourseYAML?.name;
-			if (name) await goto(`/courses/${encodeURIComponent(name)}`);
+			// Befunde blockieren den Import nicht; die Detailseite weist dann
+			// ausdrücklich darauf hin, dass gerade importiert wurde.
+			const problems = (d?.importCourseYAML?.lint ?? []).some(
+				(f: { severity: string }) => f.severity === 'PROBLEM'
+			);
+			if (name)
+				await goto(`/courses/${encodeURIComponent(name)}${problems ? '?importiert=1' : ''}`);
 		} catch (err) {
 			importError = err instanceof Error ? err.message : String(err);
 		} finally {

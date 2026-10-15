@@ -6,7 +6,8 @@ import type { RequestHandler } from './$types';
  * Importiert einen Kurs aus hochgeladenem YAML-Text. Der Client liest die Datei
  * und schickt den Inhalt als `yaml`. Ein vorhandener Kurs gleichen Namens wird
  * ersetzt. Fehler (z. B. inline `signKey:`, ungültiges YAML) kommen als lesbare
- * Meldung vom Backend zurück.
+ * Meldung vom Backend zurück. Einstellungen ohne Wirkung lehnt das Backend nicht ab,
+ * es meldet sie als Lint-Befunde im Ergebnis.
  */
 export const POST: RequestHandler = async ({ request }) => {
 	const { yaml } = await request.json();
@@ -15,6 +16,9 @@ export const POST: RequestHandler = async ({ request }) => {
 			mutation ImportCourseYAML($yaml: String!) {
 				importCourseYAML(yaml: $yaml) {
 					name
+					lint {
+						severity
+					}
 				}
 			}
 		`),
