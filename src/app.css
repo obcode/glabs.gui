@@ -1,5 +1,4 @@
 @import 'tailwindcss';
-@plugin '@tailwindcss/typography';
 
 /*
   Kuratierte Theme-Auswahl statt `themes: all` — 30+ Themes sind zu viel Fläche

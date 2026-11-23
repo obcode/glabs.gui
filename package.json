@@ -30,7 +30,6 @@
 		"@sveltejs/kit": "^2.70.4",
 		"@sveltejs/vite-plugin-svelte": "^7.3.1",
 		"@tailwindcss/postcss": "^4.3.5",
-		"@tailwindcss/typography": "^0.5.20",
 		"@types/node": "^26.6.6",
 		"daisyui": "^5.8.2",
 		"eslint": "^10.15.0",
