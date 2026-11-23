@@ -23,7 +23,3 @@ overrides:
   # sauber, ersetzt aber sendDefaultPii durch freizügigere dataCollection-Defaults — das ist
   # ein eigener Schritt, kein Dependency-Bump.
   'glob@>=9.0.0 <14.0.2': ^14.0.3
-  # @sveltejs/kit 2.x verlangt cookie ^0.6; GHSA-pxg6-pf52-xh8x ist in 0.7.0 behoben, Kit selbst
-  # erst mit 3.0 (eigene Migration). 0.7 ändert nur die Prüfung von name/path/domain, parse()
-  # und serialize() bleiben gleich.
-  'cookie@<0.7.0': ^0.7.2

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import { displayName } from '$lib/auth';
+	import { displayName } from '#lib/auth.ts';
 
 	// Kuratierte Themes (müssen zu app.css `@plugin "daisyui"` passen).
 	const themes = ['nord', 'light', 'dark', 'corporate', 'business'];

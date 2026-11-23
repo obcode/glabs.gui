@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { formatDateTime } from '$lib/format';
+	import { formatDateTime } from '#lib/format.ts';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();

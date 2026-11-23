@@ -1,6 +1,6 @@
-import { graphql } from '$lib/gql';
-import { gqlProxy } from '$lib/server/gqlProxy';
-import { forgetAccess } from '$lib/server/accessGate';
+import { graphql } from '#lib/gql/index.ts';
+import { gqlProxy } from '#lib/server/gqlProxy.ts';
+import { forgetAccess } from '#lib/server/accessGate.ts';
 import type { RequestHandler } from './$types';
 
 /**

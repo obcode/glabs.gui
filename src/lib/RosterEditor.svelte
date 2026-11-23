@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import { invalidateAll } from '$app/navigation';
-	import { extractEmails, extractGroups, mergeEmails, mergeGroups } from '$lib/roster';
-	import type { RosterGroup } from '$lib/roster';
+	import { refreshAll } from '$app/navigation';
+	import { extractEmails, extractGroups, mergeEmails, mergeGroups } from '#lib/roster.ts';
+	import type { RosterGroup } from '#lib/roster.ts';
 
 	let {
 		course
@@ -15,7 +15,7 @@
 		untrack(() => (course.groups ?? []).map((g) => ({ name: g.name, members: [...g.members] })))
 	);
 
-	// Nach dem Speichern (invalidateAll ändert die course-Prop) neu aus dem
+	// Nach dem Speichern (refreshAll ändert die course-Prop) neu aus dem
 	// geladenen Stand aufbauen.
 	$effect(() => {
 		const key = JSON.stringify([course.students, course.groups]);
@@ -79,7 +79,7 @@
 	// wird nur geladen, wenn wirklich eine xlsx hochgeladen wird).
 	async function fileToText(file: File) {
 		if (/\.xlsx$/i.test(file.name)) {
-			const { xlsxToTsv } = await import('$lib/xlsx');
+			const { xlsxToTsv } = await import('#lib/xlsx.ts');
 			return xlsxToTsv(await file.arrayBuffer());
 		}
 		return file.text();
@@ -125,7 +125,7 @@
 				error = d?.error || `Fehler (HTTP ${res.status})`;
 				return;
 			}
-			await invalidateAll();
+			await refreshAll();
 		} catch (e) {
 			error = e instanceof Error ? e.message : String(e);
 		} finally {
@@ -150,7 +150,7 @@
 				error = d?.error || `Fehler (HTTP ${res.status})`;
 				return;
 			}
-			await invalidateAll();
+			await refreshAll();
 		} catch (e) {
 			error = e instanceof Error ? e.message : String(e);
 		} finally {

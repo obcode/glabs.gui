@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Convert from 'ansi-to-html';
-	import { subscribeRunOp, type LogLine } from '$lib/opSubscription';
-	import type { PlanOpMutation } from '$lib/gql/graphql';
+	import { subscribeRunOp, type LogLine } from '#lib/opSubscription.ts';
+	import type { PlanOpMutation } from '#lib/gql/graphql.ts';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();

@@ -1,7 +1,7 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { GraphQLClient } from 'graphql-request';
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
-import { env } from '$env/dynamic/private';
+import { GLABS_SERVER } from '$app/env/private';
 
 // Identitäts-Weiterreichung an glabs-web (Auth-Modell: reiner Proxy-Header).
 //
@@ -38,7 +38,7 @@ export const authContext = new AsyncLocalStorage<AuthContext>();
  * @param ctx expliziter Kontext (Fallback: laufender Request)
  */
 export function backendClient(ctx?: AuthContext): GraphQLClient {
-	const url = env.GLABS_SERVER;
+	const url = GLABS_SERVER;
 	// Fail-fast bei Fehlkonfiguration (narrowt zugleich `string | undefined` →
 	// `string`). Der Wurf wird von den Aufrufern gefangen: im Layout → me/
 	// serverInfo = null, im Zugangs-Riegel → kein `.response` → nicht aussperren.
@@ -54,7 +54,7 @@ export function backendClient(ctx?: AuthContext): GraphQLClient {
 
 /**
  * Kurzform für Einzel-Requests. Das getippte Dokument (aus `graphql(...)`,
- * $lib/gql) trägt Ergebnis- und Variablentyp, daher ist der Rückgabewert
+ * #lib/gql) trägt Ergebnis- und Variablentyp, daher ist der Rückgabewert
  * vollständig typisiert. Operationen ohne Variablen dürfen das zweite Argument
  * weglassen, Operationen mit Variablen müssen es setzen.
  */

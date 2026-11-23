@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// $env + graphql-request mocken; wir prüfen nur, mit welcher URL/Headern der
+// $app/env/private + graphql-request mocken; wir prüfen nur, mit welcher URL/Headern der
 // GraphQLClient gebaut wird — nicht das echte Backend.
-vi.mock('$env/dynamic/private', () => ({ env: { GLABS_SERVER: 'http://test/query' } }));
+vi.mock('$app/env/private', () => ({ GLABS_SERVER: 'http://test/query' }));
 const clientCtor = vi.fn();
 vi.mock('graphql-request', () => ({
 	GraphQLClient: class {

@@ -1,6 +1,6 @@
-import { graphql } from '$lib/gql';
-import type { AccessStatus } from '$lib/gql/graphql';
-import { backendRequest } from '$lib/server/backend';
+import { graphql } from '#lib/gql/index.ts';
+import type { AccessStatus } from '#lib/gql/graphql.ts';
+import { backendRequest } from '#lib/server/backend.ts';
 
 // Zugangs-Riegel der GUI. Er ist reine Führung: glabs-web lässt Nicht-Freigeschaltete
 // ohnehin nur an `me`, `serverInfo` und `requestAccess` (access_gate.go im Backend).

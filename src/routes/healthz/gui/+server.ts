@@ -1,4 +1,3 @@
-import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
 /**
@@ -21,7 +20,7 @@ import type { RequestHandler } from './$types';
  * als eigene.
  */
 export const GET: RequestHandler = () =>
-	json(
+	Response.json(
 		{ status: 'ok', version: __APP_VERSION__, built: __BUILD_TIME__ },
 		// Ein zwischengespeichertes Lebenszeichen ist eine Lüge mit Verfallsdatum.
 		{ headers: { 'Cache-Control': 'no-store' } }

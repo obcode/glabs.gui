@@ -1,3 +1,5 @@
+import adapter from '@sveltejs/adapter-node';
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -35,8 +37,26 @@ const appVersion = process.env.APP_VERSION?.trim() || gitDescribe() || pkg.versi
 // reproduzierbarer/exakter Zeitstempel gewünscht ist.
 const buildTime = process.env.BUILD_TIME?.trim() || new Date().toISOString();
 
+// Die SvelteKit-Konfiguration. Seit SvelteKit 3 wird sie hier dem Plugin übergeben; eine
+// svelte.config.js wird abgelehnt.
+const kit = sveltekit({
+	// Endschalter: das gesamte eigene Projekt läuft im Runes-Modus (Legacy-Syntax
+	// wie `export let` / `$:` / `on:` wäre ab hier ein Compile-Fehler).
+	compilerOptions: { runes: true },
+	preprocess: vitePreprocess(),
+	adapter: adapter(),
+	// Fremd-Bibliotheken, die ihre .svelte-Quellen ausliefern, nutzen teils noch
+	// Legacy-Syntax. Der globale runes:true-Zwang würde sie brechen — daher bestimmt
+	// der Compiler in node_modules den Modus je Komponente selbst. Nicht `runes: false`:
+	// die Root-Komponente von SvelteKit 3 nutzt selbst Runes und kompiliert im
+	// Legacy-Modus nicht.
+	dynamicCompileOptions({ filename }) {
+		if (filename.includes('node_modules')) return { runes: undefined };
+	}
+});
+
 export default defineConfig({
-	plugins: [sveltekit()],
+	plugins: [kit],
 	define: {
 		__APP_VERSION__: JSON.stringify(appVersion),
 		__BUILD_TIME__: JSON.stringify(buildTime)

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { subscribeRepoOverview, type RepoOverviewEvent } from '$lib/reposSubscription';
+	import { subscribeRepoOverview, type RepoOverviewEvent } from '#lib/reposSubscription.ts';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();

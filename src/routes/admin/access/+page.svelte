@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { goto, invalidateAll } from '$app/navigation';
-	import { formatDateTime } from '$lib/format';
-	import type { AccessStatus } from '$lib/gql/graphql';
+	import { goto, refreshAll } from '$app/navigation';
+	import { formatDateTime } from '#lib/format.ts';
+	import type { AccessStatus } from '#lib/gql/graphql.ts';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -39,7 +39,7 @@
 				result = { ok: false, msg: body?.error ?? 'Aktion fehlgeschlagen.' };
 			} else {
 				result = { ok: true, msg: `${email}: ${done[action]}` };
-				await invalidateAll();
+				await refreshAll();
 			}
 		} catch (e) {
 			result = { ok: false, msg: e instanceof Error ? e.message : 'Netzwerkfehler.' };
@@ -58,7 +58,7 @@
 				headers: { 'content-type': 'application/json' },
 				body: JSON.stringify({ on: true })
 			});
-			await goto('/zugang', { invalidateAll: true });
+			await goto('/zugang', { refreshAll: true });
 		} finally {
 			startingPreview = false;
 		}

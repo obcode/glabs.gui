@@ -13,7 +13,7 @@
 				headers: { 'content-type': 'application/json' },
 				body: JSON.stringify({ on: false })
 			});
-			await goto('/admin/access', { invalidateAll: true });
+			await goto('/admin/access', { refreshAll: true });
 		} finally {
 			ending = false;
 		}

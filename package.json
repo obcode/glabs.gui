@@ -6,6 +6,10 @@
 	"private": true,
 	"packageManager": "pnpm@11.9.0",
 	"type": "module",
+	"$comment:imports": "#lib is how src/lib is imported since SvelteKit 3 removed the $lib alias: a Node subpath import, so Vite, TypeScript and Vitest resolve it without any SvelteKit configuration. Imports name the file with its extension (`#lib/format.ts`), because subpath imports map paths and do not search for files.",
+	"imports": {
+		"#lib/*": "./src/lib/*"
+	},
 	"scripts": {
 		"dev": "graphql-codegen && vite dev",
 		"devhost": "graphql-codegen && vite dev --host",
@@ -26,8 +30,8 @@
 		"@eslint/js": "^10.0.1",
 		"@graphql-codegen/cli": "^7.4.6",
 		"@graphql-codegen/client-preset": "^6.2.3",
-		"@sveltejs/adapter-node": "^5.5.8",
-		"@sveltejs/kit": "^2.70.4",
+		"@sveltejs/adapter-node": "^6.0.5",
+		"@sveltejs/kit": "^3.4.0",
 		"@sveltejs/vite-plugin-svelte": "^7.3.1",
 		"@tailwindcss/postcss": "^4.3.5",
 		"@types/node": "^26.6.6",
@@ -46,10 +50,10 @@
 		"tailwindcss": "^4.3.5",
 		"theme-change": "^3.0.4",
 		"tslib": "^2.9.1",
-		"typescript": "^5.9.3",
+		"typescript": "^6.0.3",
 		"typescript-eslint": "^8.73.0",
-		"vite": "^6.4.6",
-		"vitest": "^4.1.12"
+		"vite": "^8.3.8",
+		"vitest": "^5.1.1"
 	},
 	"dependencies": {
 		"@graphql-typed-document-node/core": "^3.2.0",

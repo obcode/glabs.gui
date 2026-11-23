@@ -1,5 +1,5 @@
-import { graphql } from '$lib/gql';
-import { backendRequest } from '$lib/server/backend';
+import { graphql } from '#lib/gql/index.ts';
+import { backendRequest } from '#lib/server/backend.ts';
 import type { PageServerLoad } from './$types';
 
 /**

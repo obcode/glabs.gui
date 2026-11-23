@@ -1,6 +1,6 @@
-import { graphql } from '$lib/gql';
-import { subscribe } from '$lib/wsClient';
-import type { CourseCheckProgressSubscription } from '$lib/gql/graphql';
+import { graphql } from '#lib/gql/index.ts';
+import { subscribe } from '#lib/wsClient.ts';
+import type { CourseCheckProgressSubscription } from '#lib/gql/graphql.ts';
 
 // One progress event of the course-check stream (the subscription payload).
 export type CheckProgress = CourseCheckProgressSubscription['courseCheckProgress'];

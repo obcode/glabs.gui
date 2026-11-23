@@ -1,8 +1,8 @@
 <script lang="ts">
 	import Convert from 'ansi-to-html';
 	import { untrack } from 'svelte';
-	import { invalidateAll, goto } from '$app/navigation';
-	import { formatDateTime } from '$lib/format';
+	import { refreshAll, goto } from '$app/navigation';
+	import { formatDateTime } from '#lib/format.ts';
 	import type { PageData } from './$types';
 
 	// Strukturtypen für die schema-getriebenen Felder (decken die Query-Formen von
@@ -174,7 +174,7 @@
 	);
 
 	// Neu aufbauen bei Wechsel auf ein anderes Assignment (gleiche Route → Komponente
-	// wiederverwendet) und nach dem Speichern (own ändert sich via invalidateAll).
+	// wiederverwendet) und nach dem Speichern (own ändert sich via refreshAll).
 	$effect(() => {
 		const id = a.course + '/' + a.name;
 		const ownKey = JSON.stringify(a.own);
@@ -271,7 +271,7 @@
 				saveError = d?.error || `Fehler (HTTP ${res.status})`;
 				return;
 			}
-			await invalidateAll(); // lädt own + resolved neu → $effect setzt das Formular zurück
+			await refreshAll(); // lädt own + resolved neu → $effect setzt das Formular zurück
 			saveOk = true;
 		} catch (e) {
 			saveError = e instanceof Error ? e.message : String(e);

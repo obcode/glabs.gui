@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { subscribeCourseCheck, type CheckProgress } from '$lib/checkSubscription';
+	import { subscribeCourseCheck, type CheckProgress } from '#lib/checkSubscription.ts';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();

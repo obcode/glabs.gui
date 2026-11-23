@@ -15,12 +15,19 @@ zwischen CLI und Web; sie teilen keinen Live-State.
 
 ## Stack
 
-- **SvelteKit 2**, **adapter-node** (SSR + Node-Server, kein statischer Export)
-- **Svelte 5 mit Runes global** (`svelte.config.js` erzwingt `runes: true`)
+- **SvelteKit 3**, **adapter-node** (SSR + Node-Server, kein statischer Export), **Vite 8**
+- **Svelte 5 mit Runes global** (der `sveltekit()`-Aufruf in `vite.config.js` erzwingt
+  `runes: true`)
+- **SvelteKit 3: keine `svelte.config.js`, kein `$lib`, deklarierte Umgebung.** Die
+  SvelteKit-Optionen sind Argumente von `sveltekit()` in `vite.config.js`. `src/lib` wird als
+  `#lib/…` **mit Dateiendung** importiert (`#lib/format.ts`), ein Node-Subpath-Import aus
+  `package.json`. Umgebungsvariablen existieren erst, wenn sie in `src/env.ts` deklariert
+  sind, und werden aus `$app/env/private` / `$app/env/public` gelesen (zur Laufzeit, nicht
+  eingebacken).
 - **TypeScript** durchgehend (`.ts` + `<script lang="ts">`, `strict: true`), keine
-  `.js`-App-Quellen mehr (nur die Config-Dateien `svelte.config.js`/`vite.config.js`/
-  `eslint.config.js` bleiben JS). TypeScript bleibt vorerst auf **5.x**: TS 7 (der
-  Go-basierte `tsc`) crasht das aktuelle `svelte-check` — Bump erst, wenn kompatibel.
+  `.js`-App-Quellen mehr (nur die Config-Dateien `vite.config.js`/`eslint.config.js`
+  bleiben JS). TypeScript bleibt vorerst auf **6.x**: TS 7 (der Go-basierte `tsc`) crasht
+  das aktuelle `svelte-check` — Bump erst, wenn kompatibel.
 - **GraphQL Codegen** (`@graphql-codegen/client-preset`): getippte Operationen aus
   dem eingecheckten Schema — siehe „GraphQL & Typen" unten
 - **Tailwind v4** (CSS-first, kein `tailwind.config.js`) + **daisyUI 5**
@@ -57,11 +64,13 @@ Nicht nach älteren Svelte-Beispielen (oder der plexams.gui-CLAUDE.md) richten.
 - Seiteneffekte: `$effect(() => …)` — **nicht** `$:` mit Nebenwirkung.
 - Events: `onclick={fn}` — **nicht** `on:click`.
 - Slots/Children: `{@render children?.()}` mit `children` aus `$props()` — **nicht** `<slot>`.
-- Store-Zugriff mit `$store` funktioniert weiter (`$app/state`, eigene Stores).
+- Seitenzustand aus `$app/state` (`page.url`, ohne `$`). `$app/stores` gibt es seit
+  SvelteKit 3 nicht mehr; eigene Stores mit `$store` funktionieren weiter.
 
 Fremdbibliotheken, die noch Legacy-`.svelte` ausliefern, werden über
-`dynamicCompileOptions` in `svelte.config.js` per `runes: false` in `node_modules`
-kompiliert — nur dafür ist diese Ausnahme da.
+`dynamicCompileOptions` in `vite.config.js` in `node_modules` ohne erzwungenen Modus
+kompiliert (`runes: undefined`, der Compiler erkennt ihn je Komponente) — nur dafür ist
+diese Ausnahme da.
 
 ## Styling
 
@@ -77,12 +86,12 @@ Theme-Umschalter (`Nav.svelte`) müssen übereinstimmen. Theme wird via
 Alle Operationen sind **getippt** — es gibt kein `import { gql } from 'graphql-request'`
 mehr im App-Code:
 
-- Operationen werden mit der `graphql()`-Funktion aus **`$lib/gql`** geschrieben
+- Operationen werden mit der `graphql()`-Funktion aus **`#lib/gql/index.ts`** geschrieben
   (von `@graphql-codegen/client-preset` erzeugt); das Query/Mutation-Dokument steht
   als Template-Literal im Aufruf. Der Rückgabewert ist ein
   `TypedDocumentNode<Ergebnis, Variablen>`.
-- `backendRequest(doc, vars)` (`$lib/server/backend`) und `gqlProxy(doc, vars)`
-  (`$lib/server/gqlProxy`) leiten diese Typen weiter: das Ergebnis von `load`/Proxy
+- `backendRequest(doc, vars)` (`#lib/server/backend`) und `gqlProxy(doc, vars)`
+  (`#lib/server/gqlProxy`) leiten diese Typen weiter: das Ergebnis von `load`/Proxy
   ist voll typisiert, Variablen werden geprüft, `vars` ist bei variablenlosen
   Operationen optional und sonst Pflicht.
 - **Operationsnamen müssen global eindeutig sein** (client-preset-Anforderung), z. B.
@@ -106,13 +115,13 @@ Ablauf/Quellen:
 
 GraphQL gegen `glabs-web`, aufgerufen über `graphql-request` mit getippten
 Dokumenten (siehe oben). Muster: SSR-`load` holt Daten serverseitig; Mutationen
-laufen über einen `/api/<domain>`-Proxy im gui-Server, danach `invalidateAll()`.
+laufen über einen `/api/<domain>`-Proxy im gui-Server, danach `refreshAll()`.
 
 **Subscriptions** sind die Ausnahme: sie laufen im **Browser** über `graphql-ws`
 direkt gegen `PUBLIC_GLABS_SERVER` (http→ws). Die WS-Verbindung trägt das Cookie,
 der Proxy injiziert `X-Remote-User` auf dem Upgrade wie bei jedem Request — daher
 kein interner Hop und kein SSR. Bisher nur der Report-Live-Fortschritt
-(`$lib/reportSubscription`, `assignmentReportProgress`).
+(`#lib/reportSubscription`, `assignmentReportProgress`).
 
 ### SSR-Identity-Falle
 
@@ -139,10 +148,10 @@ authentifizierten Principal, nie aus einem GraphQL-Argument.
 ## Struktur
 
 - `src/routes/` — Seiten (`+page.svelte`), Layouts, `load`-Funktionen (`+*.server.ts`), `/api`-Proxies (`+server.ts`)
-- `src/lib/` — wiederverwendbare Komponenten und Logik (`$lib/…`)
+- `src/lib/` — wiederverwendbare Komponenten und Logik (`#lib/…`)
 - `src/lib/server/` — **nur serverseitig** (Backend-Client, Auth-Kontext); nie in Client-Code importieren
 - `src/lib/gql/` — **von graphql-codegen erzeugt** (`graphql()` + Typen); nicht von Hand bearbeiten
 - `schema.graphql` / `codegen.ts` / `scripts/pull-schema.mjs` — Codegen-Setup (siehe „GraphQL & Typen")
 - `static/` — unverändert ausgelieferte Assets
 - `src/app.css` — Tailwind/daisyUI-Konfiguration
-- `src/hooks.server.ts` — Identität weiterreichen + Zugangs-Riegel: Nicht-Freigeschaltete landen auf `/zugang` (Logik in `src/lib/server/accessGate.ts`; nur Führung, gesperrt wird im Backend). Freischalten auf `/admin/access`. Vorschau-Modus (Cookie `glabs_preview`, `$lib/server/preview`): ein Admin sieht glabs wie eine nicht freigeschaltete Person; wird als Header `X-Glabs-Preview` ans Backend gereicht und kann nur Rechte wegnehmen
+- `src/hooks.server.ts` — Identität weiterreichen + Zugangs-Riegel: Nicht-Freigeschaltete landen auf `/zugang` (Logik in `src/lib/server/accessGate.ts`; nur Führung, gesperrt wird im Backend). Freischalten auf `/admin/access`. Vorschau-Modus (Cookie `glabs_preview`, `#lib/server/preview`): ein Admin sieht glabs wie eine nicht freigeschaltete Person; wird als Header `X-Glabs-Preview` ans Backend gereicht und kann nur Rechte wegnehmen

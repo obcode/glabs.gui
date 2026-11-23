@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { displayVersion as display, baseReleaseTag, isExactTag } from '$lib/version';
+	import { displayVersion as display, baseReleaseTag, isExactTag } from '#lib/version.ts';
 
 	// glabs-web-Version-Infos: version = „vX.Y.Z" (Release) oder „dev-<rev>…"
 	// (dev-Build); commit = Git-Commit; date = Release-/Build-Zeitpunkt (RFC3339

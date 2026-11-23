@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { formatDateTime } from '$lib/format';
-	import { subscribeAssignmentReport, type ReportProgress } from '$lib/reportSubscription';
+	import { formatDateTime } from '#lib/format.ts';
+	import { subscribeAssignmentReport, type ReportProgress } from '#lib/reportSubscription.ts';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();

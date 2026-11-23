@@ -1,5 +1,5 @@
-import { graphql } from '$lib/gql';
-import { gqlProxy } from '$lib/server/gqlProxy';
+import { graphql } from '#lib/gql/index.ts';
+import { gqlProxy } from '#lib/server/gqlProxy.ts';
 import type { RequestHandler } from './$types';
 
 /**

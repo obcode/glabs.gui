@@ -1,13 +1,13 @@
 import { createClient } from 'graphql-ws';
 import { print, type DocumentNode } from 'graphql';
-import { env } from '$env/dynamic/public';
+import { PUBLIC_GLABS_SERVER } from '$app/env/public';
 
 // Browser → glabs-web GraphQL over WebSocket. Unlike the SSR calls (internal hop),
 // subscriptions run in the browser against PUBLIC_GLABS_SERVER; in production the
 // auth proxy injects the identity on the WS upgrade (as on any request), in dev the
 // backend runs with auth disabled.
 function wsURL(): string {
-	const http = env.PUBLIC_GLABS_SERVER;
+	const http = PUBLIC_GLABS_SERVER;
 	if (!http) {
 		throw new Error('PUBLIC_GLABS_SERVER ist nicht gesetzt — der Live-Stream kann nicht öffnen.');
 	}

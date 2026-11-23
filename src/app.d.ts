@@ -8,7 +8,7 @@ declare global {
 			remoteUser?: string;
 			remoteDisplayname?: string;
 			// Vorschau-Modus (Cookie glabs_preview): ein Admin sieht glabs wie eine
-			// nicht freigeschaltete Person. Siehe $lib/server/preview.
+			// nicht freigeschaltete Person. Siehe #lib/server/preview.
 			preview: boolean;
 		}
 		// interface PageData {}
