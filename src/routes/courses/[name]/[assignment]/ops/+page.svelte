@@ -241,9 +241,9 @@
 		<div class="mt-3 flex flex-wrap items-end gap-3">
 			{#if selectedOp === 'SETACCESS'}
 				<label class="flex flex-col gap-1">
-					<span class="text-xs font-medium text-base-content/60"
-						>accesslevel (sonst aus Config)</span
-					>
+					<span class="text-xs font-medium text-base-content/60">
+						accesslevel (sonst aus Config)
+					</span>
 					<select class="select select-bordered select-sm" bind:value={accessLevel}>
 						<option value="">— aus Config —</option>
 						<option value="guest">guest</option>
@@ -296,14 +296,16 @@
 					{selected.length > 0 ? `(${selected.length} ausgewählt)` : '(optional — leer = alle)'}
 				</summary>
 				<div class="mt-2 flex flex-wrap gap-2">
-					<button type="button" class="btn btn-ghost btn-xs" onclick={() => (selected = [])}
-						>keine</button
-					>
+					<button type="button" class="btn btn-ghost btn-xs" onclick={() => (selected = [])}>
+						keine
+					</button>
 					<button
 						type="button"
 						class="btn btn-ghost btn-xs"
-						onclick={() => (selected = [...targets])}>alle</button
+						onclick={() => (selected = [...targets])}
 					>
+						alle
+					</button>
 				</div>
 				<div class="mt-2 grid gap-1 sm:grid-cols-2">
 					{#each targets as t (t)}
@@ -356,8 +358,10 @@
 								class="link link-hover font-mono break-all text-primary"
 								href={t.url}
 								target="_blank"
-								rel="noopener">{t.repo}</a
+								rel="noopener"
 							>
+								{t.repo}
+							</a>
 						</li>
 					{/each}
 				</ul>
@@ -365,9 +369,9 @@
 
 			{#if plan.resolved}
 				<details class="mt-3">
-					<summary class="cursor-pointer text-xs text-base-content/60"
-						>Aufgelöste Konfiguration</summary
-					>
+					<summary class="cursor-pointer text-xs text-base-content/60">
+						Aufgelöste Konfiguration
+					</summary>
 					<pre
 						class="mt-2 max-h-72 overflow-auto rounded-xl border border-base-200 bg-base-200 p-3 text-xs leading-relaxed text-base-content">{@html resolvedHtml}</pre>
 				</details>

@@ -129,9 +129,9 @@
 				class="hidden"
 				onchange={onFile}
 			/>
-			<span class="text-xs text-base-content/50"
-				>Neu anlegen oder eine YAML importieren (ersetzt einen gleichnamigen Kurs).</span
-			>
+			<span class="text-xs text-base-content/50">
+				Neu anlegen oder eine YAML importieren (ersetzt einen gleichnamigen Kurs).
+			</span>
 		</div>
 	</div>
 

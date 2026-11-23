@@ -120,10 +120,10 @@
 				<code>write_repository</code> ankreuzen.
 			</li>
 			<li>
-				<span class="font-medium">Create personal access token</span> → der Token (<code
-					>glpat-…</code
-				>) wird <span class="font-medium">nur einmal</span> angezeigt. Kopieren Sie ihn und fügen Sie
-				ihn unten ein.
+				<span class="font-medium">Create personal access token</span> → der Token (<code>
+					glpat-…
+				</code>) wird <span class="font-medium">nur einmal</span> angezeigt. Kopieren Sie ihn und fügen
+				Sie ihn unten ein.
 			</li>
 		</ol>
 	</section>
@@ -175,9 +175,9 @@
 				erneutem Hinterlegen wieder möglich.
 			</p>
 			<div class="modal-action">
-				<button class="btn btn-ghost btn-sm" onclick={() => (confirmRemove = false)}
-					>Abbrechen</button
-				>
+				<button class="btn btn-ghost btn-sm" onclick={() => (confirmRemove = false)}>
+					Abbrechen
+				</button>
 				<button class="btn btn-error btn-sm" disabled={removing} onclick={remove}>
 					{removing ? 'entfernt …' : 'Entfernen'}
 				</button>

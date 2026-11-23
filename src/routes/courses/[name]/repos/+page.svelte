@@ -54,8 +54,10 @@
 <main class="mx-auto max-w-4xl py-8">
 	<a
 		href="/courses/{encodeURIComponent(data.course)}"
-		class="text-sm text-base-content/60 hover:underline">← {data.course}</a
+		class="text-sm text-base-content/60 hover:underline"
 	>
+		← {data.course}
+	</a>
 	<h1 class="mt-2 text-2xl font-bold">Generierte Repos: {data.course}</h1>
 	<p class="mt-1 text-xs text-base-content/50">
 		Pro Assignment: wie viele der Ziel-Repos tatsächlich in GitLab existieren. Live aus GitLab

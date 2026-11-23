@@ -185,9 +185,9 @@
 				{#each sortedStudents as s (s)}
 					<li class="flex items-center justify-between gap-2 py-0.5">
 						<span class="font-mono break-all">{s}</span>
-						<button class="shrink-0 text-error" title="entfernen" onclick={() => removeStudent(s)}
-							>×</button
-						>
+						<button class="shrink-0 text-error" title="entfernen" onclick={() => removeStudent(s)}>
+							×
+						</button>
 					</li>
 				{/each}
 			</ul>
@@ -240,14 +240,16 @@
 				{#each sortedGroups as g (g.name)}
 					<div class="rounded-lg border border-base-200 p-2">
 						<div class="flex items-center justify-between">
-							<span class="text-sm font-medium"
-								>{g.name} <span class="text-base-content/50">({g.members.length})</span></span
-							>
+							<span class="text-sm font-medium">
+								{g.name} <span class="text-base-content/50">({g.members.length})</span>
+							</span>
 							<button
 								class="text-xs text-error"
 								title="Gruppe entfernen"
-								onclick={() => removeGroup(g.name)}>Gruppe entfernen</button
+								onclick={() => removeGroup(g.name)}
 							>
+								Gruppe entfernen
+							</button>
 						</div>
 						<div class="mt-1 flex flex-wrap gap-1">
 							{#each g.members as m (m)}
@@ -256,8 +258,10 @@
 									<button
 										class="text-error"
 										title="entfernen"
-										onclick={() => removeMember(g.name, m)}>×</button
+										onclick={() => removeMember(g.name, m)}
 									>
+										×
+									</button>
 								</span>
 							{/each}
 						</div>
@@ -277,8 +281,10 @@
 							<button
 								type="submit"
 								class="btn btn-outline btn-xs"
-								disabled={!(memberInputs[g.name] ?? '').trim()}>+ Mitglied</button
+								disabled={!(memberInputs[g.name] ?? '').trim()}
 							>
+								+ Mitglied
+							</button>
 						</form>
 					</div>
 				{/each}

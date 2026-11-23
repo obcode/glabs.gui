@@ -77,9 +77,9 @@
 			{#if result.ok}
 				<span class="badge badge-success">✓ alles ok</span>
 			{:else}
-				<span class="badge badge-error"
-					>{result.errors} Problem{result.errors === 1 ? '' : 'e'}</span
-				>
+				<span class="badge badge-error">
+					{result.errors} Problem{result.errors === 1 ? '' : 'e'}
+				</span>
 			{/if}
 		{/if}
 	</div>

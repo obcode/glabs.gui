@@ -415,8 +415,10 @@
 <main class="mx-auto max-w-5xl py-8">
 	<a
 		href="/courses/{encodeURIComponent(a.course)}"
-		class="text-sm text-base-content/60 hover:underline">← {a.course}</a
+		class="text-sm text-base-content/60 hover:underline"
 	>
+		← {a.course}
+	</a>
 
 	<div class="mt-2 flex flex-wrap items-center gap-2">
 		<h1 class="text-2xl font-bold">{a.name}</h1>
@@ -497,8 +499,9 @@
 						<label class="flex items-center gap-2 text-sm font-medium" for="f-{field.key}">
 							{field.label}
 							{#if field.required}<span class="text-error" title="erforderlich">*</span>{/if}
-							{#if field.deprecated}<span class="badge badge-warning badge-xs">deprecated</span
-								>{/if}
+							{#if field.deprecated}<span class="badge badge-warning badge-xs">
+									deprecated
+								</span>{/if}
 							<span class="font-mono text-xs font-normal text-base-content/40">{field.key}</span>
 						</label>
 						<p class="text-xs text-base-content/60">{field.description}</p>
@@ -781,8 +784,10 @@
 					class="link link-primary font-mono break-all"
 					href={urls.groupUrl}
 					target="_blank"
-					rel="noopener">{urls.groupUrl}</a
+					rel="noopener"
 				>
+					{urls.groupUrl}
+				</a>
 			</div>
 
 			{#if urls.repos.length > 0}
@@ -794,8 +799,10 @@
 								class="link link-hover font-mono break-all text-primary"
 								href={r.url}
 								target="_blank"
-								rel="noopener">{r.url}</a
+								rel="noopener"
 							>
+								{r.url}
+							</a>
 						</li>
 					{/each}
 				</ul>
@@ -840,9 +847,9 @@
 				Der YAML-Download spiegelt das danach.
 			</p>
 			<div class="modal-action">
-				<button class="btn btn-ghost btn-sm" onclick={() => (confirmDelete = false)}
-					>Abbrechen</button
-				>
+				<button class="btn btn-ghost btn-sm" onclick={() => (confirmDelete = false)}>
+					Abbrechen
+				</button>
 				<button class="btn btn-error btn-sm" disabled={deleting} onclick={doDelete}>
 					{deleting ? 'löscht …' : 'Endgültig löschen'}
 				</button>

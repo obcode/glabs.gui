@@ -70,9 +70,9 @@
 			{#each jobs as job (job.id)}
 				<div class="rounded-2xl border border-base-200 p-4">
 					<div class="flex flex-wrap items-center gap-2">
-						<span class="badge {statusBadge[job.status] ?? 'badge-ghost'} badge-sm"
-							>{job.status}</span
-						>
+						<span class="badge {statusBadge[job.status] ?? 'badge-ghost'} badge-sm">
+							{job.status}
+						</span>
 						<span class="font-mono font-medium">{job.op}</span>
 						<a
 							class="link link-hover font-mono text-sm text-base-content/70"

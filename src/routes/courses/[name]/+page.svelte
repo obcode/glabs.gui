@@ -504,8 +504,9 @@
 				entfernt. Laden Sie vorher das YAML herunter, wenn Sie es behalten möchten.
 			</p>
 			<div class="modal-action">
-				<button class="btn btn-ghost btn-sm" onclick={() => (confirmOpen = false)}>Abbrechen</button
-				>
+				<button class="btn btn-ghost btn-sm" onclick={() => (confirmOpen = false)}>
+					Abbrechen
+				</button>
 				<button class="btn btn-error btn-sm" disabled={deleting} onclick={doDelete}>
 					{deleting ? 'löscht …' : 'Endgültig löschen'}
 				</button>

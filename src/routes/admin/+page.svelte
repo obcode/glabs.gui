@@ -224,18 +224,18 @@
 			<section class="mt-6">
 				<h2 class="text-sm font-semibold text-base-content/70">Sonstiges</h2>
 				<div class="mt-2 flex flex-wrap gap-1 text-xs">
-					{#if summary.courseCreated}<span class="badge badge-ghost badge-sm"
-							>Kurse angelegt: {summary.courseCreated}</span
-						>{/if}
-					{#if summary.courseDeleted}<span class="badge badge-ghost badge-sm"
-							>Kurse gelöscht: {summary.courseDeleted}</span
-						>{/if}
-					{#if summary.tokenSaved}<span class="badge badge-ghost badge-sm"
-							>Token gespeichert: {summary.tokenSaved}</span
-						>{/if}
-					{#if summary.tokenDeleted}<span class="badge badge-ghost badge-sm"
-							>Token gelöscht: {summary.tokenDeleted}</span
-						>{/if}
+					{#if summary.courseCreated}<span class="badge badge-ghost badge-sm">
+							Kurse angelegt: {summary.courseCreated}
+						</span>{/if}
+					{#if summary.courseDeleted}<span class="badge badge-ghost badge-sm">
+							Kurse gelöscht: {summary.courseDeleted}
+						</span>{/if}
+					{#if summary.tokenSaved}<span class="badge badge-ghost badge-sm">
+							Token gespeichert: {summary.tokenSaved}
+						</span>{/if}
+					{#if summary.tokenDeleted}<span class="badge badge-ghost badge-sm">
+							Token gelöscht: {summary.tokenDeleted}
+						</span>{/if}
 				</div>
 			</section>
 		{/if}
@@ -271,8 +271,8 @@
 									{e.actorName || e.actor || '—'}{#if e.department}<span
 											class="text-base-content/40"
 										>
-											· FK {e.department}</span
-										>{/if}
+											· FK {e.department}
+										</span>{/if}
 								</td>
 								<td class="text-xs">{courseRef(e.course, e.assignment) || '—'}</td>
 								<td class="text-xs break-all text-base-content/70">{e.detail || '—'}</td>

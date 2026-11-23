@@ -156,8 +156,10 @@
 											href={m.webUrl}
 											target="_blank"
 											rel="noopener"
-											title={m.username}>{m.name}</a
-										>{#if i < p.members.length - 1},
+											title={m.username}
+										>
+											{m.name}
+										</a>{#if i < p.members.length - 1},
 										{/if}{/each}
 								{/if}
 							</td>
@@ -230,8 +232,10 @@
 											class="link link-hover"
 											href="{p.webUrl}/container_registry"
 											target="_blank"
-											rel="noopener">{p.release.dockerImages.status}</a
+											rel="noopener"
 										>
+											{p.release.dockerImages.status}
+										</a>
 									{:else}
 										<span class="text-base-content/40">—</span>
 									{/if}
