@@ -13,6 +13,8 @@ FROM base AS builder
 ARG APP_VERSION
 ENV APP_VERSION=$APP_VERSION
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+# pnpm applies patches/ (patchedDependencies) during install, so it must be there first.
+COPY patches/ patches/
 RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm run build
@@ -24,6 +26,8 @@ RUN pnpm run build
 # vorhanden; die Runtime-Deps brauchen keine Build-Skripte.
 FROM base AS prod-deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+# pnpm applies patches/ (patchedDependencies) during install, so it must be there first.
+COPY patches/ patches/
 RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 
 # --- Runtime ---
