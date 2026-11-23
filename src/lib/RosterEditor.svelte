@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import { invalidateAll } from '$app/navigation';
-	import { extractEmails, extractGroups, mergeEmails, mergeGroups } from '$lib/roster';
-	import type { RosterGroup } from '$lib/roster';
+	import { refreshAll } from '$app/navigation';
+	import { extractEmails, extractGroups, mergeEmails, mergeGroups } from '#lib/roster.ts';
+	import type { RosterGroup } from '#lib/roster.ts';
 
 	let {
 		course
@@ -15,7 +15,7 @@
 		untrack(() => (course.groups ?? []).map((g) => ({ name: g.name, members: [...g.members] })))
 	);
 
-	// Nach dem Speichern (invalidateAll ändert die course-Prop) neu aus dem
+	// Nach dem Speichern (refreshAll ändert die course-Prop) neu aus dem
 	// geladenen Stand aufbauen.
 	$effect(() => {
 		const key = JSON.stringify([course.students, course.groups]);
@@ -79,7 +79,7 @@
 	// wird nur geladen, wenn wirklich eine xlsx hochgeladen wird).
 	async function fileToText(file: File) {
 		if (/\.xlsx$/i.test(file.name)) {
-			const { xlsxToTsv } = await import('$lib/xlsx');
+			const { xlsxToTsv } = await import('#lib/xlsx.ts');
 			return xlsxToTsv(await file.arrayBuffer());
 		}
 		return file.text();
@@ -125,7 +125,7 @@
 				error = d?.error || `Fehler (HTTP ${res.status})`;
 				return;
 			}
-			await invalidateAll();
+			await refreshAll();
 		} catch (e) {
 			error = e instanceof Error ? e.message : String(e);
 		} finally {
@@ -150,7 +150,7 @@
 				error = d?.error || `Fehler (HTTP ${res.status})`;
 				return;
 			}
-			await invalidateAll();
+			await refreshAll();
 		} catch (e) {
 			error = e instanceof Error ? e.message : String(e);
 		} finally {
@@ -185,9 +185,9 @@
 				{#each sortedStudents as s (s)}
 					<li class="flex items-center justify-between gap-2 py-0.5">
 						<span class="font-mono break-all">{s}</span>
-						<button class="shrink-0 text-error" title="entfernen" onclick={() => removeStudent(s)}
-							>×</button
-						>
+						<button class="shrink-0 text-error" title="entfernen" onclick={() => removeStudent(s)}>
+							×
+						</button>
 					</li>
 				{/each}
 			</ul>
@@ -240,14 +240,16 @@
 				{#each sortedGroups as g (g.name)}
 					<div class="rounded-lg border border-base-200 p-2">
 						<div class="flex items-center justify-between">
-							<span class="text-sm font-medium"
-								>{g.name} <span class="text-base-content/50">({g.members.length})</span></span
-							>
+							<span class="text-sm font-medium">
+								{g.name} <span class="text-base-content/50">({g.members.length})</span>
+							</span>
 							<button
 								class="text-xs text-error"
 								title="Gruppe entfernen"
-								onclick={() => removeGroup(g.name)}>Gruppe entfernen</button
+								onclick={() => removeGroup(g.name)}
 							>
+								Gruppe entfernen
+							</button>
 						</div>
 						<div class="mt-1 flex flex-wrap gap-1">
 							{#each g.members as m (m)}
@@ -256,8 +258,10 @@
 									<button
 										class="text-error"
 										title="entfernen"
-										onclick={() => removeMember(g.name, m)}>×</button
+										onclick={() => removeMember(g.name, m)}
 									>
+										×
+									</button>
 								</span>
 							{/each}
 						</div>
@@ -277,8 +281,10 @@
 							<button
 								type="submit"
 								class="btn btn-outline btn-xs"
-								disabled={!(memberInputs[g.name] ?? '').trim()}>+ Mitglied</button
+								disabled={!(memberInputs[g.name] ?? '').trim()}
 							>
+								+ Mitglied
+							</button>
 						</form>
 					</div>
 				{/each}

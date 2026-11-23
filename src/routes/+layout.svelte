@@ -1,8 +1,8 @@
 <script lang="ts">
 	import '../app.css';
-	import Nav from '$lib/Nav.svelte';
-	import Footer from '$lib/Footer.svelte';
-	import PreviewBanner from '$lib/PreviewBanner.svelte';
+	import Nav from '#lib/Nav.svelte';
+	import Footer from '#lib/Footer.svelte';
+	import PreviewBanner from '#lib/PreviewBanner.svelte';
 	import { themeChange } from 'theme-change';
 	import { onMount } from 'svelte';
 	import type { Snippet } from 'svelte';

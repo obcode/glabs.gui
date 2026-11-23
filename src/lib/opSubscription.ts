@@ -1,6 +1,6 @@
-import { graphql } from '$lib/gql';
-import { subscribe } from '$lib/wsClient';
-import type { RunOpSubscription } from '$lib/gql/graphql';
+import { graphql } from '#lib/gql/index.ts';
+import { subscribe } from '#lib/wsClient.ts';
+import type { RunOpSubscription } from '#lib/gql/graphql.ts';
 
 // One streamed output line of a running operation.
 export type LogLine = RunOpSubscription['runOp'];

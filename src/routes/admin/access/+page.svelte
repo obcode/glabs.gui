@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { goto, invalidateAll } from '$app/navigation';
-	import { formatDateTime } from '$lib/format';
-	import type { AccessStatus } from '$lib/gql/graphql';
+	import { goto, refreshAll } from '$app/navigation';
+	import { formatDateTime } from '#lib/format.ts';
+	import type { AccessStatus } from '#lib/gql/graphql.ts';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -39,7 +39,7 @@
 				result = { ok: false, msg: body?.error ?? 'Aktion fehlgeschlagen.' };
 			} else {
 				result = { ok: true, msg: `${email}: ${done[action]}` };
-				await invalidateAll();
+				await refreshAll();
 			}
 		} catch (e) {
 			result = { ok: false, msg: e instanceof Error ? e.message : 'Netzwerkfehler.' };
@@ -58,7 +58,7 @@
 				headers: { 'content-type': 'application/json' },
 				body: JSON.stringify({ on: true })
 			});
-			await goto('/zugang', { invalidateAll: true });
+			await goto('/zugang', { refreshAll: true });
 		} finally {
 			startingPreview = false;
 		}
@@ -102,8 +102,10 @@
 			class="btn btn-outline btn-sm"
 			title="glabs mit Ihrer Kennung so ansehen, als wären Sie nicht freigeschaltet — zum Ausprobieren des Anfrage-Ablaufs"
 			onclick={startPreview}
-			disabled={startingPreview}>Als nicht freigeschaltet ansehen</button
+			disabled={startingPreview}
 		>
+			Als nicht freigeschaltet ansehen
+		</button>
 	</div>
 
 	{#if result}
@@ -130,13 +132,13 @@
 								<div>
 									<span class="font-semibold">{e.name || e.email}</span>
 									{#if e.name}<span class="ml-1 font-mono text-xs">{e.email}</span>{/if}
-									{#if e.department}<span class="ml-2 text-xs text-base-content/60"
-											>FK {e.department}</span
-										>{/if}
+									{#if e.department}<span class="ml-2 text-xs text-base-content/60">
+											FK {e.department}
+										</span>{/if}
 								</div>
-								<span class="text-xs text-base-content/60"
-									>angefragt {formatDateTime(e.requestedAt)}</span
-								>
+								<span class="text-xs text-base-content/60">
+									angefragt {formatDateTime(e.requestedAt)}
+								</span>
 							</div>
 							{#if e.reason}
 								<p class="rounded-box bg-base-200 px-3 py-2 text-sm whitespace-pre-line">
@@ -147,8 +149,10 @@
 								<button
 									class="btn btn-ghost btn-sm"
 									onclick={() => act('reject', e.email)}
-									disabled={busy === e.email}>Ablehnen</button
+									disabled={busy === e.email}
 								>
+									Ablehnen
+								</button>
 								<button
 									class="btn btn-primary btn-sm"
 									onclick={() => act('approve', e.email)}
@@ -192,11 +196,11 @@
 										</div>{/if}
 								</td>
 								<td class="text-xs">{e.department || '—'}</td>
-								<td
-									><span class="badge badge-sm {statusBadge[e.status]}"
-										>{statusLabel[e.status]}</span
-									></td
-								>
+								<td>
+									<span class="badge badge-sm {statusBadge[e.status]}">
+										{statusLabel[e.status]}
+									</span>
+								</td>
 								<td class="text-xs">
 									{formatDateTime(e.decidedAt)}
 									{#if e.decidedBy}<div class="text-base-content/60">{e.decidedBy}</div>{/if}
@@ -206,21 +210,27 @@
 										<button
 											class="btn btn-ghost btn-xs text-error"
 											onclick={() => act('revoke', e.email)}
-											disabled={busy === e.email}>Entziehen</button
+											disabled={busy === e.email}
 										>
+											Entziehen
+										</button>
 									{:else}
 										<button
 											class="btn btn-ghost btn-xs"
 											onclick={() => act('approve', e.email)}
-											disabled={busy === e.email}>Freischalten</button
+											disabled={busy === e.email}
 										>
+											Freischalten
+										</button>
 									{/if}
 									<button
 										class="btn btn-ghost btn-xs"
 										title="Anfrage vergessen; die Person kann neu anfragen"
 										onclick={() => act('reset', e.email)}
-										disabled={busy === e.email}>Zurücksetzen</button
+										disabled={busy === e.email}
 									>
+										Zurücksetzen
+									</button>
 								</td>
 							</tr>
 						{/each}

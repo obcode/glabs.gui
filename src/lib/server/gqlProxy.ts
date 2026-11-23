@@ -1,14 +1,13 @@
-import { json } from '@sveltejs/kit';
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
-import { gqlErrorMessage } from '$lib/gqlError';
-import { backendRequest } from '$lib/server/backend';
+import { gqlErrorMessage } from '#lib/gqlError.ts';
+import { backendRequest } from '#lib/server/backend.ts';
 
 // Serverseitiger Helfer für die /api-Proxy-Endpunkte: führt eine GraphQL-
 // Operation gegen glabs-web ($GLABS_SERVER) aus und verpackt das Ergebnis als
 // JSON — mit einheitlichem Fehler-Handling (HTTP 400 + lesbare Meldung aus
 // gqlErrorMessage).
 //
-//   import { graphql } from '$lib/gql';
+//   import { graphql } from '#lib/gql/index.ts';
 //   export async function POST({ request }) {
 //     const { yaml } = await request.json();
 //     return gqlProxy(
@@ -27,8 +26,8 @@ export async function gqlProxy<TData, TVars>(
 ): Promise<Response> {
 	try {
 		const data = await backendRequest(document, ...args);
-		return json(data);
+		return Response.json(data);
 	} catch (e) {
-		return json({ error: gqlErrorMessage(e) }, { status: 400 });
+		return Response.json({ error: gqlErrorMessage(e) }, { status: 400 });
 	}
 }

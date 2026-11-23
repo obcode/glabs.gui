@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
-	import { formatDateTime } from '$lib/format';
+	import { refreshAll } from '$app/navigation';
+	import { formatDateTime } from '#lib/format.ts';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -33,7 +33,7 @@
 				actionError = d?.error || `Fehler (HTTP ${res.status})`;
 				return;
 			}
-			await invalidateAll();
+			await refreshAll();
 		} catch (e) {
 			actionError = e instanceof Error ? e.message : String(e);
 		} finally {
@@ -70,9 +70,9 @@
 			{#each jobs as job (job.id)}
 				<div class="rounded-2xl border border-base-200 p-4">
 					<div class="flex flex-wrap items-center gap-2">
-						<span class="badge {statusBadge[job.status] ?? 'badge-ghost'} badge-sm"
-							>{job.status}</span
-						>
+						<span class="badge {statusBadge[job.status] ?? 'badge-ghost'} badge-sm">
+							{job.status}
+						</span>
 						<span class="font-mono font-medium">{job.op}</span>
 						<a
 							class="link link-hover font-mono text-sm text-base-content/70"

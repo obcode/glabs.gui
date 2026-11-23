@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
+	import { refreshAll } from '$app/navigation';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -26,7 +26,7 @@
 				errorMsg = body?.error ?? 'Anfrage fehlgeschlagen.';
 				return;
 			}
-			await invalidateAll();
+			await refreshAll();
 		} catch (e) {
 			errorMsg = e instanceof Error ? e.message : 'Netzwerkfehler.';
 		} finally {

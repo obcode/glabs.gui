@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { invalidateAll, goto } from '$app/navigation';
-	import { formatDateTime } from '$lib/format';
+	import { refreshAll, goto } from '$app/navigation';
+	import { formatDateTime } from '#lib/format.ts';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -52,7 +52,7 @@
 				return;
 			}
 			newOpen = false;
-			await invalidateAll();
+			await refreshAll();
 			await goto(`/courses/${encodeURIComponent(nc.name.trim())}`);
 		} catch (e) {
 			createError = e instanceof Error ? e.message : String(e);
@@ -79,7 +79,7 @@
 				importError = d?.error || `Fehler (HTTP ${res.status})`;
 				return;
 			}
-			await invalidateAll();
+			await refreshAll();
 			const name = d?.importCourseYAML?.name;
 			// Befunde blockieren den Import nicht; die Detailseite weist dann
 			// ausdrücklich darauf hin, dass gerade importiert wurde.
@@ -129,9 +129,9 @@
 				class="hidden"
 				onchange={onFile}
 			/>
-			<span class="text-xs text-base-content/50"
-				>Neu anlegen oder eine YAML importieren (ersetzt einen gleichnamigen Kurs).</span
-			>
+			<span class="text-xs text-base-content/50">
+				Neu anlegen oder eine YAML importieren (ersetzt einen gleichnamigen Kurs).
+			</span>
 		</div>
 	</div>
 

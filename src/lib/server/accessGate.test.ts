@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Das Backend mocken: accessOf soll nur prüfen, wann es fragt und was es cacht.
 const backendRequest = vi.fn();
-vi.mock('$lib/server/backend', () => ({ backendRequest }));
+vi.mock('#lib/server/backend.ts', () => ({ backendRequest }));
 
 const { gateDecision, isOpenPath, accessOf, forgetAccess } = await import('./accessGate');
 

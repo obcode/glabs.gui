@@ -1,6 +1,5 @@
-import { json } from '@sveltejs/kit';
-import { PREVIEW_COOKIE } from '$lib/server/preview';
-import { forgetAccess } from '$lib/server/accessGate';
+import { PREVIEW_COOKIE } from '#lib/server/preview.ts';
+import { forgetAccess } from '#lib/server/accessGate.ts';
 import type { RequestHandler } from './$types';
 
 /**
@@ -16,5 +15,5 @@ export const POST: RequestHandler = async ({ request, cookies, locals }) => {
 		cookies.delete(PREVIEW_COOKIE, { path: '/' });
 	}
 	forgetAccess(locals.remoteUser);
-	return json({ preview: body?.on === true });
+	return Response.json({ preview: body?.on === true });
 };

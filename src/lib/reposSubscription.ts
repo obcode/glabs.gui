@@ -1,6 +1,6 @@
-import { graphql } from '$lib/gql';
-import { subscribe } from '$lib/wsClient';
-import type { CourseRepoOverviewProgressSubscription } from '$lib/gql/graphql';
+import { graphql } from '#lib/gql/index.ts';
+import { subscribe } from '#lib/wsClient.ts';
+import type { CourseRepoOverviewProgressSubscription } from '#lib/gql/graphql.ts';
 
 // One progress event of the repo-overview stream (the subscription payload).
 export type RepoOverviewEvent =

@@ -5,7 +5,7 @@ import type { CodegenConfig } from '@graphql-codegen/cli';
 // Operationen im Quellcode voll getippte Dokument-Knoten unter src/lib/gql/.
 //
 // Nutzung im Code:
-//   import { graphql } from '$lib/gql';
+//   import { graphql } from '#lib/gql/index.ts';
 //   const CoursesDoc = graphql(`query Courses { courses { name } }`);
 //   const data = await backendRequest(CoursesDoc); // data ist getippt
 //
@@ -32,7 +32,7 @@ const config: CodegenConfig = {
 				// String-Literale.
 				enumsAsTypes: true,
 				// Der benutzerdefinierte Zeit-Skalar des Backends wird als ISO-String
-				// übertragen (siehe $lib/format formatDateTime).
+				// übertragen (siehe #lib/format formatDateTime).
 				scalars: { Time: 'string' }
 			}
 		}

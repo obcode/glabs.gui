@@ -1,6 +1,6 @@
-import { graphql } from '$lib/gql';
-import { backendRequest } from '$lib/server/backend';
-import { gqlErrorMessage } from '$lib/gqlError';
+import { graphql } from '#lib/gql/index.ts';
+import { backendRequest } from '#lib/server/backend.ts';
+import { gqlErrorMessage } from '#lib/gqlError.ts';
 import type { PageServerLoad } from './$types';
 
 /**

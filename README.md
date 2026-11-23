@@ -10,7 +10,7 @@ Austauschformat zwischen CLI und Web.
 
 ## Stack
 
-SvelteKit 2 · Svelte 5 (Runes global) · TypeScript · Tailwind v4 · daisyUI 5 ·
+SvelteKit 3 · Svelte 5 (Runes global) · TypeScript · Tailwind v4 · daisyUI 5 ·
 pnpm · adapter-node. GraphQL-Operationen sind über
 [GraphQL Codegen](https://the-guild.dev/graphql/codegen) getippt. Backend ist
 `glabs-web` (GraphQL, im [glabs-Repo](https://github.com/obcode/glabs) unter

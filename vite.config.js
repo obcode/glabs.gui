@@ -1,3 +1,5 @@
+import adapter from '@sveltejs/adapter-node';
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -35,11 +37,36 @@ const appVersion = process.env.APP_VERSION?.trim() || gitDescribe() || pkg.versi
 // reproduzierbarer/exakter Zeitstempel gewünscht ist.
 const buildTime = process.env.BUILD_TIME?.trim() || new Date().toISOString();
 
+// Die SvelteKit-Konfiguration. Seit SvelteKit 3 wird sie hier dem Plugin übergeben; eine
+// svelte.config.js wird abgelehnt.
+const kit = sveltekit({
+	// Endschalter: das gesamte eigene Projekt läuft im Runes-Modus (Legacy-Syntax
+	// wie `export let` / `$:` / `on:` wäre ab hier ein Compile-Fehler).
+	compilerOptions: { runes: true },
+	preprocess: vitePreprocess(),
+	adapter: adapter(),
+	// Fremd-Bibliotheken, die ihre .svelte-Quellen ausliefern, nutzen teils noch
+	// Legacy-Syntax. Der globale runes:true-Zwang würde sie brechen — daher bestimmt
+	// der Compiler in node_modules den Modus je Komponente selbst. Nicht `runes: false`:
+	// die Root-Komponente von SvelteKit 3 nutzt selbst Runes und kompiliert im
+	// Legacy-Modus nicht.
+	dynamicCompileOptions({ filename }) {
+		if (filename.includes('node_modules')) return { runes: undefined };
+	}
+});
+
 export default defineConfig({
-	plugins: [sveltekit()],
+	plugins: [kit],
 	define: {
 		__APP_VERSION__: JSON.stringify(appVersion),
-		__BUILD_TIME__: JSON.stringify(buildTime)
+		__BUILD_TIME__: JSON.stringify(buildTime),
+		// Sentry's tree-shaking flag: no tracing code in either bundle. Tracing is off anyway
+		// (tracesSampleRate 0 in both hooks), but the SDK still adds its browser-tracing
+		// integration by default. That integration picks its SvelteKit 3 variant only through
+		// Sentry's own Vite plugin, which is not used here; the fallback subscribes to
+		// `$app/stores`, which SvelteKit 3 removed, and throws `app_stores_removed` on every
+		// page load.
+		__SENTRY_TRACING__: false
 	},
 	// Unit-Tests (vitest) leben in src/.
 	test: {

@@ -1,5 +1,5 @@
 {
-	"extends": "./.svelte-kit/tsconfig.json",
+	"extends": "$app/tsconfig",
 	"compilerOptions": {
 		"allowJs": true,
 		"checkJs": true,
@@ -9,7 +9,10 @@
 		"skipLibCheck": true,
 		"sourceMap": true,
 		"strict": true,
-		"moduleResolution": "bundler",
-		"rootDirs": [".", "./.svelte-kit/types"]
-	}
+		"moduleResolution": "bundler"
+	},
+	// Pfade, Typen und weitere Optionen kommen aus $app/tsconfig, das `svelte-kit sync` nach
+	// node_modules schreibt. Die include-Liste ist seit SvelteKit 3 unsere eigene: die
+	// Quellen und die Konfigurationsdateien im Wurzelverzeichnis.
+	"include": ["src", "*"]
 }

@@ -1,6 +1,6 @@
 // Minimaler xlsx-Reader: entpackt die Datei (fflate) und liest das erste
 // Arbeitsblatt in eine TSV-Zeichenkette, die dann durch dieselbe Tabellen-Logik
-// wie CSV/Moodle-Exporte läuft ($lib/roster). Bewusst klein und ohne schwere
+// wie CSV/Moodle-Exporte läuft (#lib/roster). Bewusst klein und ohne schwere
 // Fremd-Lib; deckt einfache Grids (Moodle-/Excel-Export) ab.
 
 import { unzipSync, strFromU8 } from 'fflate';

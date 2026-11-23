@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { invalidateAll, goto } from '$app/navigation';
+	import { refreshAll, goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { formatDateTime } from '$lib/format';
-	import RosterEditor from '$lib/RosterEditor.svelte';
+	import { formatDateTime } from '#lib/format.ts';
+	import RosterEditor from '#lib/RosterEditor.svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -71,7 +71,7 @@
 				return;
 			}
 			importOpen = false;
-			await invalidateAll();
+			await refreshAll();
 			const name = d?.importAssignmentYAML?.name;
 			if (name)
 				await goto(`/courses/${encodeURIComponent(course.name)}/${encodeURIComponent(name)}`);
@@ -118,7 +118,7 @@
 				return;
 			}
 			editOpen = false;
-			await invalidateAll();
+			await refreshAll();
 		} catch (e) {
 			editError = e instanceof Error ? e.message : String(e);
 		} finally {
@@ -140,7 +140,7 @@
 				actionError = d?.error || `Fehler (HTTP ${res.status})`;
 				return;
 			}
-			await invalidateAll();
+			await refreshAll();
 			await goto('/courses');
 		} catch (err) {
 			actionError = err instanceof Error ? err.message : String(err);
@@ -504,8 +504,9 @@
 				entfernt. Laden Sie vorher das YAML herunter, wenn Sie es behalten möchten.
 			</p>
 			<div class="modal-action">
-				<button class="btn btn-ghost btn-sm" onclick={() => (confirmOpen = false)}>Abbrechen</button
-				>
+				<button class="btn btn-ghost btn-sm" onclick={() => (confirmOpen = false)}>
+					Abbrechen
+				</button>
 				<button class="btn btn-error btn-sm" disabled={deleting} onclick={doDelete}>
 					{deleting ? 'löscht …' : 'Endgültig löschen'}
 				</button>

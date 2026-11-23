@@ -1,7 +1,7 @@
-import { error, json } from '@sveltejs/kit';
-import { graphql } from '$lib/gql';
-import { gqlProxy } from '$lib/server/gqlProxy';
-import { forgetAccess } from '$lib/server/accessGate';
+import { error } from '@sveltejs/kit';
+import { graphql } from '#lib/gql/index.ts';
+import { gqlProxy } from '#lib/server/gqlProxy.ts';
+import { forgetAccess } from '#lib/server/accessGate.ts';
 import type { RequestHandler } from './$types';
 
 // Die vier Entscheidungen der Seite /admin/access. Admin-gated im Backend.
@@ -35,7 +35,7 @@ const ResetUser = graphql(`
 export const POST: RequestHandler = async ({ params, request }) => {
 	const body = await request.json().catch(() => ({}));
 	const email = typeof body?.email === 'string' ? body.email : '';
-	if (!email) return json({ error: 'Keine E-Mail-Adresse angegeben.' }, { status: 400 });
+	if (!email) return Response.json({ error: 'Keine E-Mail-Adresse angegeben.' }, { status: 400 });
 
 	let res: Response;
 	switch (params.action) {

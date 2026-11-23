@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { formatDateTime } from '$lib/format';
+	import { formatDateTime } from '#lib/format.ts';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -54,9 +54,9 @@
 							<td>{e.assignment}</td>
 							<td class="font-mono text-xs">{e.op}</td>
 							<td>
-								<span class="badge {statusBadge[e.status] ?? 'badge-ghost'} badge-sm"
-									>{e.status}</span
-								>
+								<span class="badge {statusBadge[e.status] ?? 'badge-ghost'} badge-sm">
+									{e.status}
+								</span>
 							</td>
 							<td class="text-xs break-all text-base-content/70">{e.detail || '—'}</td>
 						</tr>

@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
-	import { env } from '$env/dynamic/public';
-	import { formatDateTime } from '$lib/format';
+	import { refreshAll } from '$app/navigation';
+	import { PUBLIC_GITLAB_HOST } from '$app/env/public';
+	import { formatDateTime } from '#lib/format.ts';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
 	// GitLab-Host für die Anleitung/Links. Über PUBLIC_GITLAB_HOST konfigurierbar,
 	// Default ist die vom LRZ gehostete Instanz.
-	const gitlabHost = (env.PUBLIC_GITLAB_HOST || 'https://gitlab.lrz.de').replace(/\/+$/, '');
+	const gitlabHost = (PUBLIC_GITLAB_HOST || 'https://gitlab.lrz.de').replace(/\/+$/, '');
 	const tokensUrl = `${gitlabHost}/-/user_settings/personal_access_tokens`;
 
 	let status = $derived(data.status ?? { set: false, updatedAt: null });
@@ -35,7 +35,7 @@
 				return;
 			}
 			token = '';
-			await invalidateAll();
+			await refreshAll();
 		} catch (err) {
 			actionError = err instanceof Error ? err.message : String(err);
 		} finally {
@@ -53,7 +53,7 @@
 				actionError = d?.error || `Fehler (HTTP ${res.status})`;
 				return;
 			}
-			await invalidateAll();
+			await refreshAll();
 		} catch (err) {
 			actionError = err instanceof Error ? err.message : String(err);
 		} finally {
@@ -120,10 +120,10 @@
 				<code>write_repository</code> ankreuzen.
 			</li>
 			<li>
-				<span class="font-medium">Create personal access token</span> → der Token (<code
-					>glpat-…</code
-				>) wird <span class="font-medium">nur einmal</span> angezeigt. Kopieren Sie ihn und fügen Sie
-				ihn unten ein.
+				<span class="font-medium">Create personal access token</span> → der Token (<code>
+					glpat-…
+				</code>) wird <span class="font-medium">nur einmal</span> angezeigt. Kopieren Sie ihn und fügen
+				Sie ihn unten ein.
 			</li>
 		</ol>
 	</section>
@@ -175,9 +175,9 @@
 				erneutem Hinterlegen wieder möglich.
 			</p>
 			<div class="modal-action">
-				<button class="btn btn-ghost btn-sm" onclick={() => (confirmRemove = false)}
-					>Abbrechen</button
-				>
+				<button class="btn btn-ghost btn-sm" onclick={() => (confirmRemove = false)}>
+					Abbrechen
+				</button>
 				<button class="btn btn-error btn-sm" disabled={removing} onclick={remove}>
 					{removing ? 'entfernt …' : 'Entfernen'}
 				</button>

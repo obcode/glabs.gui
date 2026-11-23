@@ -15,16 +15,19 @@ updates:
     cooldown:
       default-days: 3
     groups:
-      # Svelte-Ökosystem zusammen (Kit/vite-plugin/svelte müssen kompatibel sein)
+      # Svelte-Ökosystem zusammen (Kit/vite-plugin/svelte müssen kompatibel sein).
+      # `vite` gehört hier mit hinein und NICHT zu `tooling`: SvelteKit und
+      # @sveltejs/vite-plugin-svelte koppeln ihre Peer-Ranges an die Vite-Major, ein
+      # Vite-Major allein bricht den Build (#67) — wie in plexams.gui.
       svelte:
         patterns:
           - 'svelte'
           - '@sveltejs/*'
           - 'svelte-*'
+          - 'vite'
       # Build-/Test-Toolchain zusammen
       tooling:
         patterns:
-          - 'vite'
           - 'vitest'
           - '@vitest/*'
           - 'eslint*'
@@ -34,13 +37,6 @@ updates:
         update-types:
           - minor
           - patch
-    # vite/vitest-Majors kommen mit der SvelteKit-3-Migration, nicht einzeln:
-    # vite 8 + vitest 5 ohne Kit 3 bricht den Build (#67).
-    ignore:
-      - dependency-name: vite
-        update-types: ['version-update:semver-major']
-      - dependency-name: vitest
-        update-types: ['version-update:semver-major']
 
   - package-ecosystem: github-actions
     directory: '/'
