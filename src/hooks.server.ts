@@ -5,6 +5,7 @@ import { SENTRY_DSN, SENTRY_ENVIRONMENT } from '$app/env/private';
 import { authContext } from '#lib/server/backend.ts';
 import { ACCESS_PAGE, accessOf, gateDecision, isOpenPath } from '#lib/server/accessGate.ts';
 import { PREVIEW_COOKIE } from '#lib/server/preview.ts';
+import { DATA_COLLECTION, scrubBreadcrumb, scrubEvent } from '#lib/sentryScrub.ts';
 
 /**
  * Fehler des SSR-Node-Prozesses an GlitchTip melden (Projekt `glabs-gui`, dasselbe wie im
@@ -21,11 +22,20 @@ if (reporting) {
 	Sentry.init({
 		dsn: SENTRY_DSN,
 		environment: SENTRY_ENVIRONMENT || 'production',
+		// Ordnet jedes Issue dem Build zu, aus dem es kam.
+		release: __APP_VERSION__,
 		// Nur Fehler — GlitchTip liest keine Traces.
 		tracesSampleRate: 0,
 		// Zwingend: unten wird X-Remote-User gelesen, und das IST bei glabs die
-		// E-Mail-Adresse der angemeldeten Person.
-		sendDefaultPii: false
+		// E-Mail-Adresse der angemeldeten Person. /api/token/set trägt den GitLab-PAT im Body
+		// und reicht ihn als GraphQL-Variable weiter. Sentry 11 sammelt ohne diese Option
+		// Header, Cookies, Bodies, GraphQL-Variablen und Frame-Variablen ein — siehe
+		// DATA_COLLECTION.
+		dataCollection: DATA_COLLECTION,
+		// Die zweite Linie, falls doch etwas angehängt wird: nur harmlose Header, keine
+		// Query-Strings, keine Token oder Adressen in Texten. Siehe #lib/sentryScrub.
+		beforeBreadcrumb: (breadcrumb) => scrubBreadcrumb(breadcrumb),
+		beforeSend: (event) => scrubEvent(event)
 	});
 }
 
@@ -81,8 +91,9 @@ const guiHandle: Handle = async ({ event, resolve }) => {
 };
 
 /**
- * `sentryHandle()` hängt die Anfrage — URL, Methode, Header — an alles, was darin scheitert;
- * ohne das trägt ein Issue eine Meldung und keine Umstände.
+ * `sentryHandle()` hängt die Anfrage — URL und Methode; Header, Cookies und Query-String nimmt
+ * `dataCollection` wieder heraus — an alles, was darin scheitert; ohne das trägt ein Issue eine
+ * Meldung und keine Umstände.
  *
  * Ohne DSN ganz weggelassen statt wirkungslos eingehängt: es schreibt Trace-Meta-Tags in jede
  * ausgelieferte Seite, und das wäre Aufwand ohne Leser.
