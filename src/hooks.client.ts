@@ -1,6 +1,7 @@
 import * as Sentry from '@sentry/sveltekit';
 import type { HandleClientError } from '@sveltejs/kit/hooks';
 import { PUBLIC_SENTRY_DSN, PUBLIC_SENTRY_ENVIRONMENT } from '$app/env/public';
+import { DATA_COLLECTION, scrubBreadcrumb, scrubEvent } from '#lib/sentryScrub.ts';
 
 /**
  * Browserfehler an GlitchTip melden (Projekt `glabs-gui`).
@@ -20,17 +21,23 @@ if (PUBLIC_SENTRY_DSN) {
 	Sentry.init({
 		dsn: PUBLIC_SENTRY_DSN,
 		environment: PUBLIC_SENTRY_ENVIRONMENT || 'production',
+		// Ordnet jedes Issue dem Build zu, aus dem es kam.
+		release: __APP_VERSION__,
 		// Nur Fehler. GlitchTip liest keine Traces, und jede Span wäre ein weiterer Aufruf
 		// aus dem Browser jeder Nutzerin.
 		tracesSampleRate: 0,
 		// Ausdrücklich gesetzt statt geerbt: bei glabs IST die Kennung die E-Mail-Adresse
-		// (siehe hooks.server.ts), sie darf also unter keinen Umständen mitgeschickt werden.
+		// (siehe hooks.server.ts), und /token schickt den GitLab-PAT als Body an
+		// /api/token/set. Sentry 11 sammelt ohne diese Option alles ein — siehe
+		// DATA_COLLECTION.
 		//
-		// ACHTUNG: Breadcrumbs halten weiterhin die besuchten URLs fest. Steht ein
-		// generierter Projektpfad (`<assignment>-<student>`) im Pfad, steht er auch im Issue.
-		// Der Server-Scrubber in glabs (web/obs/scrub.go) greift hier NICHT — er sitzt im
-		// Go-Backend, nicht im Browser.
-		sendDefaultPii: false
+		// ACHTUNG: Breadcrumbs halten weiterhin die besuchten Pfade fest. Steht ein
+		// generierter Projektpfad (`<assignment>-<student>`) im Pfad, steht er auch im Issue;
+		// Query-Strings schneidet scrubBreadcrumb ab. Der Server-Scrubber in glabs
+		// (web/obs/scrub.go) greift hier NICHT — er sitzt im Go-Backend, nicht im Browser.
+		dataCollection: DATA_COLLECTION,
+		beforeBreadcrumb: (breadcrumb) => scrubBreadcrumb(breadcrumb),
+		beforeSend: (event) => scrubEvent(event)
 	});
 }
 

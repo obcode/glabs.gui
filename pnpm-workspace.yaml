@@ -12,14 +12,7 @@ allowBuilds:
 # Sicherheits-Overrides für transitive Pakete, die noch kein veröffentlichter Parent behebt.
 # Jeder Eintrag nennt seinen Parent; raus, sobald dieser einen behobenen Bereich ausliefert.
 overrides:
-  # graphql-config (über @graphql-codegen/cli, nur dev) verlangt weiter minimatch ^10, und die
-  # @sentry/sveltekit-10.x-Linie zieht glob 13 → minimatch 10. Für GHSA-g3hv-75wg-m249 gibt es
-  # keinen 10.x-Fix. graphql-config ruft nur minimatch(path, pattern, { dot: true }) auf, und
-  # das bleibt in 11 gleich.
+  # graphql-config (über @graphql-codegen/cli, nur dev) verlangt weiter minimatch ^10. Für
+  # GHSA-g3hv-75wg-m249 gibt es keinen 10.x-Fix. graphql-config ruft nur
+  # minimatch(path, pattern, { dot: true }) auf, und das bleibt in 11 gleich.
   'minimatch@>=7.0.0 <11.0.1': ^11.0.1
-  # @sentry/bundler-plugins 10.x (über @sentry/sveltekit) verlangt glob ^13; GHSA-3g3m-2fjr-6pw4
-  # ist erst in 14.0.2 behoben. Der einzige Aufruf, glob(patterns, { absolute, nodir }), dient
-  # dem Source-Map-Upload, den dieses Projekt nicht nutzt. @sentry/sveltekit 11 behöbe das
-  # sauber, ersetzt aber sendDefaultPii durch freizügigere dataCollection-Defaults — das ist
-  # ein eigener Schritt, kein Dependency-Bump.
-  'glob@>=9.0.0 <14.0.2': ^14.0.3

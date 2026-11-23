@@ -149,6 +149,7 @@ authentifizierten Principal, nie aus einem GraphQL-Argument.
 
 - `src/routes/` — Seiten (`+page.svelte`), Layouts, `load`-Funktionen (`+*.server.ts`), `/api`-Proxies (`+server.ts`)
 - `src/lib/` — wiederverwendbare Komponenten und Logik (`#lib/…`)
+- `src/lib/sentryScrub.ts` — was an GlitchTip geht (Browser und Server): `DATA_COLLECTION` schaltet das Einsammeln von Sentry 11 ab (dessen Defaults nehmen Header, Cookies, Bodies, GraphQL- und Frame-Variablen mit), `scrubEvent`/`scrubBreadcrumb` lassen nur harmlose Header durch und entfernen Query-Strings, GitLab-Token und E-Mail-Adressen. Keine Option ohne Test lockern — kein anderer Test bemerkt, wenn `X-Remote-User` oder der PAT im Collector landet
 - `src/lib/server/` — **nur serverseitig** (Backend-Client, Auth-Kontext); nie in Client-Code importieren
 - `src/lib/gql/` — **von graphql-codegen erzeugt** (`graphql()` + Typen); nicht von Hand bearbeiten
 - `schema.graphql` / `codegen.ts` / `scripts/pull-schema.mjs` — Codegen-Setup (siehe „GraphQL & Typen")
