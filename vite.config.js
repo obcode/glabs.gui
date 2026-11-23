@@ -59,7 +59,14 @@ export default defineConfig({
 	plugins: [kit],
 	define: {
 		__APP_VERSION__: JSON.stringify(appVersion),
-		__BUILD_TIME__: JSON.stringify(buildTime)
+		__BUILD_TIME__: JSON.stringify(buildTime),
+		// Sentry's tree-shaking flag: no tracing code in either bundle. Tracing is off anyway
+		// (tracesSampleRate 0 in both hooks), but the SDK still adds its browser-tracing
+		// integration by default. That integration picks its SvelteKit 3 variant only through
+		// Sentry's own Vite plugin, which is not used here; the fallback subscribes to
+		// `$app/stores`, which SvelteKit 3 removed, and throws `app_stores_removed` on every
+		// page load.
+		__SENTRY_TRACING__: false
 	},
 	// Unit-Tests (vitest) leben in src/.
 	test: {
